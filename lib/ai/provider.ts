@@ -3,7 +3,7 @@ import {
   hasGeminiEnv,
   type StructuredResponseOptions,
 } from "@/lib/ai/gemini";
-import { generateStructuredResponse as generateOpenAIStructuredResponse, hasOpenAIEnv } from "@/lib/ai/openai";
+import { generateOpenAIStructuredResponse, hasOpenAIEnv } from "@/lib/ai/openai";
 
 export type AiProvider = "gemini" | "openai";
 

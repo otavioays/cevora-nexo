@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BrainCircuit, Building2, CheckCircle2, MessageSquareText, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight, Building2, CheckCircle2, MessageSquareText, ShieldCheck, Users } from "lucide-react";
 import { StatusPill } from "@/components/ui/status-pill";
 import { requireMembership } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   const { activeMembership } = await requireMembership();
   const supabase = await createClient();
 
-  const [{ count: memberCount }, { count: pendingInvitationCount }, { count: analysisCount }] = await Promise.all([
+  const [{ count: memberCount }, { count: pendingInvitationCount }, { count: openConversationCount }] = await Promise.all([
     supabase
       .from("clinic_members")
       .select("id", { count: "exact", head: true })
@@ -23,24 +23,24 @@ export default async function DashboardPage() {
       .eq("clinic_id", activeMembership.clinic_id)
       .eq("status", "pending"),
     supabase
-      .from("spin_interactions")
+      .from("sales_conversations")
       .select("id", { count: "exact", head: true })
       .eq("clinic_id", activeMembership.clinic_id)
-      .eq("status", "completed"),
+      .eq("status", "open"),
   ]);
 
   return (
     <>
       <header className="page-header">
         <div className="page-heading">
-          <span className="eyebrow">Inteligência comercial aplicada</span>
-          <h1>O Nexo já escolhe o próximo movimento.</h1>
+          <span className="eyebrow">Memória comercial contínua</span>
+          <h1>O Nexo agora acompanha a conversa inteira.</h1>
           <p>
-            A atendente envia uma mensagem, o sistema consulta a memória da clínica, diagnostica a conversa,
-            decide a estratégia SPIN e entrega uma resposta pronta para revisão e envio.
+            Mensagens recebidas, respostas confirmadas, necessidades, objeções e próximo objetivo passam a viver
+            em uma linha do tempo única, em vez de desaparecerem entre análises isoladas.
           </p>
         </div>
-        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 3 ativa</StatusPill>
+        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 4 ativa</StatusPill>
       </header>
 
       <section className="grid-3">
@@ -50,9 +50,9 @@ export default async function DashboardPage() {
           <p>Ambiente isolado e identificado por <code>{activeMembership.clinic.slug}</code>.</p>
         </article>
         <article className="stat-card">
-          <div className="stat-card-header"><span>Análises concluídas</span><BrainCircuit size={17} /></div>
-          <strong>{analysisCount ?? 0}</strong>
-          <p>Diagnósticos, planos e respostas registrados para esta clínica.</p>
+          <div className="stat-card-header"><span>Conversas abertas</span><MessageSquareText size={17} /></div>
+          <strong>{openConversationCount ?? 0}</strong>
+          <p>Atendimentos com memória comercial ativa e próximo movimento pendente.</p>
         </article>
         <article className="stat-card">
           <div className="stat-card-header"><span>Seu papel</span><ShieldCheck size={17} /></div>
@@ -63,26 +63,26 @@ export default async function DashboardPage() {
 
       <section className="grid-2" style={{ marginTop: "1rem" }}>
         <article className="card">
-          <h2>O que acontece em cada análise</h2>
+          <h2>O que mudou na Iteração 4</h2>
           <div className="section-stack">
-            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Diagnóstico antes da escrita</strong><p>Intenção, necessidade, objeções, emoção, estágio e informações ausentes.</p></div></div>
-            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Planejamento SPIN</strong><p>Um único objetivo é escolhido antes de qualquer frase ser gerada.</p></div></div>
-            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Resposta validada</strong><p>Regras da clínica, preço, promessas e palavras proibidas passam por verificação.</p></div></div>
+            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Histórico confirmado</strong><p>Somente mensagens recebidas e respostas marcadas como enviadas entram na memória.</p></div></div>
+            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Estado comercial acumulado</strong><p>Necessidades, objeções, emoção, etapa SPIN e próximo objetivo são atualizados a cada turno.</p></div></div>
+            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Desfecho rastreável</strong><p>Cada conversa pode ser mantida aberta, convertida, encerrada ou arquivada.</p></div></div>
           </div>
         </article>
 
         <article className="card">
-          <h2>Teste uma interação real</h2>
+          <h2>Abra a mesa de atendimento</h2>
           <p className="card-description">
-            Cole uma mensagem de paciente exatamente como ela chegou. O Nexo entregará a resposta principal,
-            uma alternativa e a explicação estratégica para a atendente.
+            Crie uma referência interna, escolha o canal e registre cada nova mensagem. O Nexo passa a responder
+            com consciência do que já foi dito e do que realmente chegou ao contato.
           </p>
           <div className="feature-row" style={{ marginTop: "1rem" }}>
-            <MessageSquareText size={18} />
-            <div><strong>Humano no controle</strong><p>A IA recomenda. A atendente revisa, copia e envia.</p></div>
+            <Users size={18} />
+            <div><strong>Humano continua no controle</strong><p>O rascunho pode ser editado e só vira memória depois da confirmação de envio.</p></div>
           </div>
           <div className="inline-actions" style={{ marginTop: "1rem" }}>
-            <Link className="button button-primary" href="/app/responder"><MessageSquareText size={16} /> Gerar resposta <ArrowRight size={16} /></Link>
+            <Link className="button button-primary" href="/app/responder"><MessageSquareText size={16} /> Abrir conversas <ArrowRight size={16} /></Link>
           </div>
         </article>
       </section>

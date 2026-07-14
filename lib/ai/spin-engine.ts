@@ -1,3 +1,4 @@
+import { generateStructuredResponse } from "@/lib/ai/provider";
 import type {
   ApprovedAnswer,
   ClinicCommercialProfile,
@@ -6,7 +7,6 @@ import type {
   Procedure,
   Professional,
 } from "@/lib/types";
-import { generateStructuredResponse } from "@/lib/ai/openai";
 
 export type SpinEngineResult = {
   analysis: {

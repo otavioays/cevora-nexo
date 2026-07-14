@@ -79,53 +79,53 @@ alter table public.spin_plans enable row level security;
 alter table public.spin_responses enable row level security;
 
 create policy "spin_interactions_select_members" on public.spin_interactions for select to authenticated
-using (public.is_clinic_member(clinic_id));
+using (public.is_clinic_member(spin_interactions.clinic_id));
 
 create policy "spin_interactions_insert_self" on public.spin_interactions for insert to authenticated
-with check (created_by = auth.uid() and public.is_clinic_member(clinic_id));
+with check (spin_interactions.created_by = auth.uid() and public.is_clinic_member(spin_interactions.clinic_id));
 
 create policy "spin_interactions_update_self" on public.spin_interactions for update to authenticated
-using (created_by = auth.uid() and public.is_clinic_member(clinic_id))
-with check (created_by = auth.uid() and public.is_clinic_member(clinic_id));
+using (spin_interactions.created_by = auth.uid() and public.is_clinic_member(spin_interactions.clinic_id))
+with check (spin_interactions.created_by = auth.uid() and public.is_clinic_member(spin_interactions.clinic_id));
 
 create policy "spin_analyses_select_members" on public.spin_analyses for select to authenticated
-using (public.is_clinic_member(clinic_id));
+using (public.is_clinic_member(spin_analyses.clinic_id));
 
 create policy "spin_analyses_insert_owned" on public.spin_analyses for insert to authenticated
 with check (
-  public.is_clinic_member(clinic_id)
+  public.is_clinic_member(spin_analyses.clinic_id)
   and exists (
     select 1 from public.spin_interactions interaction
-    where interaction.id = interaction_id
-      and interaction.clinic_id = clinic_id
+    where interaction.id = spin_analyses.interaction_id
+      and interaction.clinic_id = spin_analyses.clinic_id
       and interaction.created_by = auth.uid()
   )
 );
 
 create policy "spin_plans_select_members" on public.spin_plans for select to authenticated
-using (public.is_clinic_member(clinic_id));
+using (public.is_clinic_member(spin_plans.clinic_id));
 
 create policy "spin_plans_insert_owned" on public.spin_plans for insert to authenticated
 with check (
-  public.is_clinic_member(clinic_id)
+  public.is_clinic_member(spin_plans.clinic_id)
   and exists (
     select 1 from public.spin_interactions interaction
-    where interaction.id = interaction_id
-      and interaction.clinic_id = clinic_id
+    where interaction.id = spin_plans.interaction_id
+      and interaction.clinic_id = spin_plans.clinic_id
       and interaction.created_by = auth.uid()
   )
 );
 
 create policy "spin_responses_select_members" on public.spin_responses for select to authenticated
-using (public.is_clinic_member(clinic_id));
+using (public.is_clinic_member(spin_responses.clinic_id));
 
 create policy "spin_responses_insert_owned" on public.spin_responses for insert to authenticated
 with check (
-  public.is_clinic_member(clinic_id)
+  public.is_clinic_member(spin_responses.clinic_id)
   and exists (
     select 1 from public.spin_interactions interaction
-    where interaction.id = interaction_id
-      and interaction.clinic_id = clinic_id
+    where interaction.id = spin_responses.interaction_id
+      and interaction.clinic_id = spin_responses.clinic_id
       and interaction.created_by = auth.uid()
   )
 );

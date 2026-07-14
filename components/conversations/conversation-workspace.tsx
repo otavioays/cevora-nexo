@@ -9,6 +9,7 @@ import {
   Check,
   CheckCircle2,
   Clipboard,
+  Link2,
   MessageCirclePlus,
   MessageSquareText,
   Route,
@@ -20,8 +21,8 @@ import { StatusPill } from "@/components/ui/status-pill";
 import type {
   ConversationLatestResult,
   ConversationMessage,
+  Patient,
   Procedure,
-  SalesConversation,
   SalesConversationChannel,
   SalesConversationListItem,
   SalesConversationStatus,
@@ -74,6 +75,7 @@ function listOrFallback(items: string[], fallback: string) {
 
 export function ConversationWorkspace({
   procedures,
+  patients,
   conversations,
   activeConversation,
   messages,
@@ -81,8 +83,9 @@ export function ConversationWorkspace({
   aiConfigured,
 }: {
   procedures: Procedure[];
+  patients: Patient[];
   conversations: SalesConversationListItem[];
-  activeConversation: SalesConversation | null;
+  activeConversation: SalesConversationListItem | null;
   messages: ConversationMessage[];
   latestResult: ConversationLatestResult | null;
   aiConfigured: boolean;
@@ -94,6 +97,7 @@ export function ConversationWorkspace({
   const [contactLabel, setContactLabel] = useState("");
   const [newChannel, setNewChannel] = useState<SalesConversationChannel>("whatsapp");
   const [newProcedureId, setNewProcedureId] = useState("");
+  const [newPatientId, setNewPatientId] = useState("");
   const [creating, setCreating] = useState(false);
 
   const [patientMessage, setPatientMessage] = useState("");
@@ -106,6 +110,7 @@ export function ConversationWorkspace({
   const [loading, setLoading] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [updatingPatient, setUpdatingPatient] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -118,7 +123,12 @@ export function ConversationWorkspace({
       const response = await fetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactLabel, channel: newChannel, procedureId: newProcedureId || null }),
+        body: JSON.stringify({
+          contactLabel,
+          channel: newChannel,
+          procedureId: newProcedureId || null,
+          patientId: newPatientId || null,
+        }),
       });
       const payload = (await response.json()) as { conversationId?: string; error?: string };
       if (!response.ok || !payload.conversationId) {
@@ -216,6 +226,27 @@ export function ConversationWorkspace({
     }
   }
 
+  async function updatePatient(patientId: string) {
+    if (!activeConversation) return;
+    setUpdatingPatient(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/conversations/${activeConversation.id}/patient`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId: patientId || null }),
+      });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Não foi possível vincular o paciente.");
+      router.refresh();
+    } catch (patientError) {
+      setError(patientError instanceof Error ? patientError.message : "Não foi possível vincular o paciente.");
+    } finally {
+      setUpdatingPatient(false);
+    }
+  }
+
   async function copyDraft() {
     await navigator.clipboard.writeText(draftText);
     setCopied(true);
@@ -235,7 +266,7 @@ export function ConversationWorkspace({
         {showNewConversation && (
           <form className="conversation-create-form" onSubmit={createConversation}>
             <div className="field">
-              <label htmlFor="contact-label">Referência do contato</label>
+              <label htmlFor="contact-label">Referência da conversa</label>
               <input
                 className="input"
                 id="contact-label"
@@ -244,9 +275,16 @@ export function ConversationWorkspace({
                 required
                 value={contactLabel}
                 onChange={(event) => setContactLabel(event.target.value)}
-                placeholder="Ex.: Lead Instagram 042"
+                placeholder="Ex.: Direct Instagram de terça"
               />
               <small className="field-help">Use uma referência interna. Ela não é enviada à IA.</small>
+            </div>
+            <div className="field">
+              <label htmlFor="new-patient">Paciente ou lead</label>
+              <select className="select" id="new-patient" value={newPatientId} onChange={(event) => setNewPatientId(event.target.value)}>
+                <option value="">Conversa ainda sem cadastro</option>
+                {patients.map((patient) => <option key={patient.id} value={patient.id}>{patient.reference_label}</option>)}
+              </select>
             </div>
             <div className="grid-2 conversation-create-grid">
               <div className="field">
@@ -282,9 +320,9 @@ export function ConversationWorkspace({
                 <strong>{conversation.contact_label}</strong>
                 <StatusPill tone={statusTone(conversation.status)}>{STATUS_LABELS[conversation.status]}</StatusPill>
               </div>
-              <span>{CHANNEL_LABELS[conversation.channel]} · {conversation.procedure_name || "Procedimento indefinido"}</span>
+              <span>{conversation.patient_label || "Sem paciente"} · {CHANNEL_LABELS[conversation.channel]}</span>
               <p>{conversation.summary || conversation.next_objective || "Aguardando a primeira mensagem."}</p>
-              <small>{formatDate(conversation.last_message_at)}</small>
+              <small>{conversation.procedure_name || "Procedimento indefinido"} · {formatDate(conversation.last_message_at)}</small>
             </Link>
           ))}
         </div>
@@ -306,10 +344,24 @@ export function ConversationWorkspace({
                 <span className="eyebrow">{CHANNEL_LABELS[activeConversation.channel]}</span>
                 <h2>{activeConversation.contact_label}</h2>
                 <p>{activeConversation.procedure_id ? procedureNames.get(activeConversation.procedure_id) : "Procedimento ainda não definido"}</p>
+                {activeConversation.patient_id && (
+                  <Link className="text-link conversation-patient-link" href={`/app/pacientes?patient=${activeConversation.patient_id}`}>
+                    <Link2 size={13} /> {activeConversation.patient_label || "Abrir cadastro do paciente"}
+                  </Link>
+                )}
               </div>
             </div>
-            <div className="conversation-header-actions">
+            <div className="conversation-header-actions conversation-header-controls">
               <StatusPill tone="gold">{SPIN_LABELS[activeConversation.spin_stage]}</StatusPill>
+              <select
+                className="select conversation-patient-select"
+                disabled={updatingPatient}
+                value={activeConversation.patient_id ?? ""}
+                onChange={(event) => updatePatient(event.target.value)}
+              >
+                <option value="">Sem paciente vinculado</option>
+                {patients.map((patient) => <option key={patient.id} value={patient.id}>{patient.reference_label}</option>)}
+              </select>
               <select
                 className="select conversation-status-select"
                 disabled={updatingStatus}

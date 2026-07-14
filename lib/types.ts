@@ -3,6 +3,10 @@ export type MemberStatus = "active" | "inactive";
 export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 export type PriceVisibility = "never" | "after_context" | "always";
 export type RuleSeverity = "guidance" | "warning" | "block";
+export type SpinInteractionStatus = "processing" | "completed" | "failed";
+export type SalesInteractionStage = "opening" | "investigation" | "capability" | "commitment";
+export type SpinStage = "situation" | "problem" | "implication" | "need_payoff" | "capability" | "commitment" | "none";
+export type SpinRiskLevel = "low" | "medium" | "high";
 
 export interface Clinic {
   id: string;
@@ -149,4 +153,60 @@ export interface ApprovedAnswer {
   active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface SpinAnalysis {
+  interaction_stage: SalesInteractionStage;
+  spin_stage: SpinStage;
+  intent: string;
+  summary: string;
+  explicit_need: string;
+  implicit_need: string;
+  objections: string[];
+  emotional_state: string;
+  missing_information: string[];
+  risk_level: SpinRiskLevel;
+  confidence: number;
+}
+
+export interface SpinPlan {
+  next_objective: string;
+  recommended_strategy: string;
+  rationale: string;
+  should_present_offer: boolean;
+  should_request_commitment: boolean;
+  avoid_actions: string[];
+}
+
+export interface SpinGeneratedResponse {
+  primary_response: string;
+  alternative_response: string;
+  explanation: string;
+  expected_next_step: string;
+  warnings: string[];
+}
+
+export interface SpinValidation {
+  safe_to_use: boolean;
+  checks: string[];
+  issues: string[];
+}
+
+export interface SpinEngineResult {
+  analysis: SpinAnalysis;
+  plan: SpinPlan;
+  response: SpinGeneratedResponse;
+  validation: SpinValidation;
+}
+
+export interface SpinHistoryItem {
+  id: string;
+  patient_message: string;
+  procedure_name: string | null;
+  status: SpinInteractionStatus;
+  created_at: string;
+  spin_stage: SpinStage | null;
+  intent: string | null;
+  primary_response: string | null;
+  safe_to_use: boolean | null;
 }

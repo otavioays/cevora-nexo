@@ -1,9 +1,7 @@
-type StructuredResponseOptions = {
-  name: string;
-  schema: Record<string, unknown>;
-  system: string;
-  user: string;
-};
+import {
+  generateGeminiStructuredResponse,
+  type StructuredResponseOptions,
+} from "@/lib/ai/gemini";
 
 type OpenAIResponsePayload = {
   status?: string;
@@ -45,7 +43,7 @@ function extractOutputText(payload: OpenAIResponsePayload) {
   return null;
 }
 
-export async function generateStructuredResponse<T>({
+export async function generateOpenAIStructuredResponse<T>({
   name,
   schema,
   system,
@@ -97,7 +95,7 @@ export async function generateStructuredResponse<T>({
     const payload = (await response.json()) as OpenAIResponsePayload;
 
     if (!response.ok) {
-      throw new Error(payload.error?.message || `Falha no provedor de IA (${response.status}).`);
+      throw new Error(payload.error?.message || `Falha no provedor OpenAI (${response.status}).`);
     }
 
     if (payload.status === "incomplete") {
@@ -107,11 +105,11 @@ export async function generateStructuredResponse<T>({
     }
 
     const outputText = extractOutputText(payload);
-    if (!outputText) throw new Error("O provedor de IA não retornou um resultado estruturado.");
+    if (!outputText) throw new Error("A OpenAI não retornou um resultado estruturado.");
 
     return {
       result: JSON.parse(outputText) as T,
-      model,
+      model: `openai:${model}`,
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -121,4 +119,12 @@ export async function generateStructuredResponse<T>({
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function generateStructuredResponse<T>(options: StructuredResponseOptions) {
+  if (process.env.AI_PROVIDER?.trim().toLowerCase() === "openai") {
+    return generateOpenAIStructuredResponse<T>(options);
+  }
+
+  return generateGeminiStructuredResponse<T>(options);
 }

@@ -45,7 +45,7 @@
   gap: 0.75rem;
   padding: 0.9rem;
   margin: 0.85rem 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.02);
 }
@@ -73,14 +73,14 @@
 }
 
 .conversation-list-item:hover {
-  border-color: var(--border);
+  border-color: var(--line);
   background: rgba(255, 255, 255, 0.035);
   transform: translateY(-1px);
 }
 
 .conversation-list-item-active {
-  border-color: rgba(210, 164, 77, 0.45);
-  background: linear-gradient(135deg, rgba(210, 164, 77, 0.1), rgba(255, 255, 255, 0.025));
+  border-color: rgba(201, 164, 92, 0.45);
+  background: linear-gradient(135deg, rgba(201, 164, 92, 0.1), rgba(255, 255, 255, 0.025));
 }
 
 .conversation-list-item strong {
@@ -95,7 +95,7 @@
 
 .conversation-list-item p {
   margin: 0;
-  color: var(--text-soft);
+  color: #d7d0c8;
   font-size: 0.78rem;
   line-height: 1.45;
   display: -webkit-box;
@@ -131,8 +131,8 @@
   place-items: center;
   border-radius: 50%;
   color: var(--gold);
-  border: 1px solid rgba(210, 164, 77, 0.35);
-  background: rgba(210, 164, 77, 0.08);
+  border: 1px solid rgba(201, 164, 92, 0.35);
+  background: rgba(201, 164, 92, 0.08);
 }
 
 .conversation-status-select {
@@ -156,7 +156,7 @@
   width: min(86%, 650px);
   padding: 0.85rem 0.95rem;
   border-radius: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
 }
 
 .conversation-bubble-patient {
@@ -168,8 +168,8 @@
 .conversation-bubble-clinic {
   justify-self: end;
   border-bottom-right-radius: 5px;
-  background: rgba(210, 164, 77, 0.08);
-  border-color: rgba(210, 164, 77, 0.25);
+  background: rgba(201, 164, 92, 0.08);
+  border-color: rgba(201, 164, 92, 0.25);
 }
 
 .conversation-bubble-draft {

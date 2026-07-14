@@ -128,10 +128,11 @@ create policy "patient_document_files_select_members"
 on storage.objects for select to authenticated
 using (
   bucket_id = 'patient-documents'
-  and (storage.foldername(name))[1] in (
-    select clinic_id::text
-    from public.clinic_members
-    where user_id = auth.uid() and status = 'active'
+  and exists (
+    select 1
+    from public.patient_documents document
+    where document.storage_path = name
+      and public.is_clinic_member(document.clinic_id)
   )
 );
 
@@ -139,10 +140,15 @@ create policy "patient_document_files_insert_members"
 on storage.objects for insert to authenticated
 with check (
   bucket_id = 'patient-documents'
-  and (storage.foldername(name))[1] in (
-    select clinic_id::text
-    from public.clinic_members
-    where user_id = auth.uid() and status = 'active'
+  and exists (
+    select 1
+    from public.patient_documents document
+    where document.clinic_id::text = (storage.foldername(name))[1]
+      and document.patient_id::text = (storage.foldername(name))[2]
+      and document.id::text = (storage.foldername(name))[3]
+      and document.storage_path = ''
+      and document.status in ('created', 'awaiting_signature', 'ready_to_send')
+      and public.is_clinic_member(document.clinic_id)
   )
 );
 
@@ -150,11 +156,13 @@ create policy "patient_document_files_delete_management"
 on storage.objects for delete to authenticated
 using (
   bucket_id = 'patient-documents'
-  and (storage.foldername(name))[1] in (
-    select clinic_id::text
-    from public.clinic_members
-    where user_id = auth.uid()
-      and status = 'active'
-      and role in ('owner', 'manager')
+  and exists (
+    select 1
+    from public.patient_documents document
+    where document.storage_path = name
+      and public.has_clinic_role(
+        document.clinic_id,
+        array['owner', 'manager']::public.clinic_role[]
+      )
   )
 );

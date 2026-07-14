@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { CheckCircle2, FileLock2, ShieldCheck } from "lucide-react";
+import { DocumentIntelligencePanel } from "@/components/documents/document-intelligence-panel";
 import { DocumentWorkspace } from "@/components/documents/document-workspace";
 import { StatusPill } from "@/components/ui/status-pill";
 import { requireMembership } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { PatientDocumentAiAnalysis } from "@/lib/ai/document-intelligence-types";
 import type {
   ClinicRole,
   Patient,
@@ -79,43 +81,62 @@ export default async function DocumentsPage({ searchParams }: PageProps) {
   const requestedDocument = params.document;
   const activeDocument = documents.find((document) => document.id === requestedDocument) ?? documents[0] ?? null;
   let events: PatientDocumentEvent[] = [];
+  let latestAnalysis: PatientDocumentAiAnalysis | null = null;
 
   if (activeDocument) {
-    const { data: eventRows } = await supabase
-      .from("patient_document_events")
-      .select("*")
-      .eq("clinic_id", clinicId)
-      .eq("document_id", activeDocument.id)
-      .order("created_at", { ascending: false })
-      .limit(160);
+    const [{ data: eventRows }, { data: analysisRow }] = await Promise.all([
+      supabase
+        .from("patient_document_events")
+        .select("*")
+        .eq("clinic_id", clinicId)
+        .eq("document_id", activeDocument.id)
+        .order("created_at", { ascending: false })
+        .limit(160),
+      supabase
+        .from("patient_document_ai_analyses")
+        .select("*")
+        .eq("clinic_id", clinicId)
+        .eq("document_id", activeDocument.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
     events = (eventRows ?? []).map((event) => ({
       ...(event as Omit<PatientDocumentEvent, "author_name">),
       author_name: assigneeNames.get(event.created_by) ?? null,
     }));
+    latestAnalysis = (analysisRow as PatientDocumentAiAnalysis | null) ?? null;
   }
 
   const workspaceKey = `${activeDocument?.id ?? "none"}:${events[0]?.id ?? "empty"}`;
+  const intelligenceKey = `${activeDocument?.id ?? "none"}:${latestAnalysis?.id ?? "empty"}`;
 
   return (
     <>
       <header className="page-header document-page-header">
         <div className="page-heading">
-          <span className="eyebrow">Fluxo privado e auditável</span>
+          <span className="eyebrow">Fluxo privado com revisão assistida</span>
           <h1>Central de Documentos</h1>
           <p>
-            Organize arquivos por paciente, acompanhe assinatura, envio e visualização e preserve um histórico interno de cada ação.
+            Organize arquivos por paciente, acompanhe o fluxo e use a IA para localizar problemas aparentes antes da revisão humana.
           </p>
         </div>
-        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 6 ativa</StatusPill>
+        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 7 ativa</StatusPill>
       </header>
 
       <div className="permission-note spin-page-note">
-        <FileLock2 size={18} /> Arquivos são privados. O acesso acontece por link temporário e cada abertura fica registrada na auditoria.
+        <FileLock2 size={18} /> Arquivos são privados. A pré-análise só é liberada para documentos fictícios ou anonimizados.
       </div>
       <div className="permission-note spin-page-note">
-        <ShieldCheck size={18} /> Este fluxo controla documentos, mas ainda não aplica certificado digital nem substitui prontuário ou plataforma oficial de prescrição.
+        <ShieldCheck size={18} /> A IA não assina, prescreve, valida autenticidade ou declara conformidade. Toda decisão continua humana.
       </div>
+
+      <DocumentIntelligencePanel
+        key={intelligenceKey}
+        activeDocument={activeDocument}
+        latestAnalysis={latestAnalysis}
+      />
 
       <DocumentWorkspace
         key={workspaceKey}

@@ -45,6 +45,7 @@ export async function generateOpenAIStructuredResponse<T>({
   schema,
   system,
   user,
+  attachment,
 }: StructuredResponseOptions): Promise<{ result: T; model: string }> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
@@ -53,7 +54,22 @@ export async function generateOpenAIStructuredResponse<T>({
 
   const model = getOpenAIModel();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 75_000);
+  const timeout = setTimeout(() => controller.abort(), 90_000);
+  const userContent: Array<Record<string, unknown>> = [];
+
+  if (attachment?.mimeType === "application/pdf") {
+    userContent.push({
+      type: "input_file",
+      filename: attachment.fileName,
+      file_data: `data:${attachment.mimeType};base64,${attachment.dataBase64}`,
+    });
+  } else if (attachment) {
+    userContent.push({
+      type: "input_image",
+      image_url: `data:${attachment.mimeType};base64,${attachment.dataBase64}`,
+    });
+  }
+  userContent.push({ type: "input_text", text: user });
 
   try {
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -72,7 +88,7 @@ export async function generateOpenAIStructuredResponse<T>({
           },
           {
             role: "user",
-            content: [{ type: "input_text", text: user }],
+            content: userContent,
           },
         ],
         text: {
@@ -111,6 +127,9 @@ export async function generateOpenAIStructuredResponse<T>({
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error("A análise demorou mais que o esperado. Tente novamente.");
+    }
+    if (error instanceof SyntaxError) {
+      throw new Error("A OpenAI retornou uma estrutura inválida. Tente analisar novamente.");
     }
     throw error;
   } finally {

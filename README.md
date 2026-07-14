@@ -72,8 +72,20 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - confirmação de assinatura e liberação restritas a proprietários e gestores;
 - notas e histórico interno de cada mudança;
 - eventos resumidos na linha do tempo do paciente;
-- arquivos fora do prompt da IA;
 - armazenamento privado, RLS e funções seguras.
+
+## Iteração 7: Inteligência Documental Assistida
+
+- classificação sugerida do tipo documental;
+- análise aparente de legibilidade, corte, desfoque, reflexo, orientação e páginas incompletas;
+- checklist de campos sem transcrever valores pessoais ou clínicos;
+- recomendações para revisão humana, novo arquivo ou revisão especializada;
+- mensagem neutra preparada para edição e cópia;
+- histórico de análises ligado ao documento e ao paciente;
+- suporte multimodal a PDF, JPG e PNG nos provedores;
+- confirmação obrigatória de que o arquivo é fictício ou anonimizado;
+- limite de 10 MB para análise por IA nesta versão;
+- nenhum avanço de status, aprovação, assinatura ou validação automática.
 
 ## Stack
 
@@ -82,6 +94,7 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - Supabase Auth + PostgreSQL + RLS
 - Supabase Storage privado
 - Gemini API com JSON Schema
+- OpenAI Responses API como alternativa opcional
 - camada substituível de provedores de IA
 - CSS próprio
 - GitHub Actions para lint, tipagem e build
@@ -111,6 +124,8 @@ supabase/migrations/202607140008_iteration_5_patients.sql
 supabase/migrations/202607140009_iteration_5_functions.sql
 supabase/migrations/202607140010_iteration_6_document_center.sql
 supabase/migrations/202607140011_iteration_6_functions.sql
+supabase/migrations/202607140012_iteration_7_document_intelligence.sql
+supabase/migrations/202607140013_iteration_7_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -154,9 +169,11 @@ npm run dev
 
 ## Privacidade e limites do MVP
 
-O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google e possui limites de uso. Portanto, não envie dados médicos identificáveis ao motor de IA nessa configuração de MVP.
+O Nexo remove alguns identificadores óbvios das conversas antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google e possui limites de uso. Portanto, não envie dados médicos identificáveis ao motor de IA nessa configuração de MVP.
 
-O cadastro de pacientes continua comercial e não substitui prontuário. Os arquivos da Central de Documentos são privados e não são enviados ao Gemini nesta iteração, mas a implementação não constitui certificação de conformidade jurídica, regulatória ou de segurança.
+Os arquivos da Central de Documentos permanecem privados no Supabase. Na Iteração 7, um arquivo só é enviado ao provedor externo quando a pessoa confirma explicitamente que ele é fictício ou foi anonimizado. Essa confirmação não torna seguro enviar dados reais identificáveis e não substitui uma configuração contratual adequada para produção.
+
+A pré-análise não verifica autenticidade, autoria, assinatura, registro profissional, certificado, validade jurídica, conformidade ou correção clínica. Todo resultado exige revisão humana e nenhum status é alterado automaticamente.
 
 Os estados de assinatura são controles operacionais. O Nexo ainda não aplica certificado digital, não valida ICP-Brasil e não emite receita eletrônica oficial.
 
@@ -185,7 +202,8 @@ npm run build
 - `docs/ITERATION_4.md`
 - `docs/ITERATION_5.md`
 - `docs/ITERATION_6.md`
+- `docs/ITERATION_7.md`
 
 ## Próxima iteração
 
-A Iteração 7 adicionará inteligência documental para classificar arquivos, alertar sobre fotos ou scans, verificar campos aparentes e preparar a mensagem de envio, sem permitir que a IA assine, prescreva ou declare validade jurídica.
+A Iteração 8 poderá criar uma fila operacional com tarefas, prazos, responsáveis e alertas para conversas e documentos parados.

@@ -35,14 +35,16 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - validação contra preço, promessas e palavras proibidas;
 - persistência separada de interação, diagnóstico, plano e resposta;
 - histórico recente por clínica;
-- chamada de IA somente no servidor, com armazenamento desativado no provedor.
+- Gemini gratuito como provedor padrão e OpenAI como alternativa opcional;
+- remoção local de e-mail, telefone, CPF, CNPJ e links antes da chamada externa.
 
 ## Stack
 
 - Next.js com App Router e TypeScript
 - React
 - Supabase Auth + PostgreSQL + RLS
-- OpenAI Responses API com Structured Outputs
+- Gemini API com JSON Schema
+- camada substituível de provedores de IA
 - CSS próprio
 - GitHub Actions para lint, tipagem e build
 - Vercel para deploy
@@ -78,11 +80,20 @@ cp .env.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_PUBLICÁVEL
+AI_PROVIDER=gemini
+GEMINI_API_KEY=SUA_CHAVE_PRIVADA_DO_GEMINI
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+As chaves de IA são usadas somente em rotas do servidor. Nunca use o prefixo `NEXT_PUBLIC_` nelas.
+
+Para usar OpenAI posteriormente:
+
+```env
+AI_PROVIDER=openai
 OPENAI_API_KEY=SUA_CHAVE_PRIVADA_DA_OPENAI
 OPENAI_MODEL=gpt-5-mini
 ```
-
-A variável `OPENAI_API_KEY` é usada somente em rotas do servidor. Nunca use o prefixo `NEXT_PUBLIC_` nela.
 
 6. No Supabase Auth, adicione as URLs de redirecionamento:
 
@@ -96,6 +107,10 @@ https://SEU-DOMINIO/auth/callback
 ```bash
 npm run dev
 ```
+
+## Privacidade no modo gratuito
+
+O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google. Portanto, não envie dados médicos identificáveis nessa configuração de MVP.
 
 ## Primeiro administrador da plataforma
 

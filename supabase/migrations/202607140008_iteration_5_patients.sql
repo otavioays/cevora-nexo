@@ -88,7 +88,7 @@ alter table public.sales_conversations
   add constraint sales_conversations_patient_clinic_fk
   foreign key (patient_id, clinic_id)
   references public.patients(id, clinic_id)
-  on delete set null;
+  on delete restrict;
 
 create index patients_clinic_activity_idx
   on public.patients(clinic_id, last_activity_at desc);

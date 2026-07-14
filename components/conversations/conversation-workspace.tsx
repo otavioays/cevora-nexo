@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -88,11 +88,14 @@ export function ConversationWorkspace({
   aiConfigured: boolean;
 }) {
   const router = useRouter();
+  const procedureNames = new Map(procedures.map((procedure) => [procedure.id, procedure.name]));
+
   const [showNewConversation, setShowNewConversation] = useState(conversations.length === 0);
   const [contactLabel, setContactLabel] = useState("");
   const [newChannel, setNewChannel] = useState<SalesConversationChannel>("whatsapp");
   const [newProcedureId, setNewProcedureId] = useState("");
   const [creating, setCreating] = useState(false);
+
   const [patientMessage, setPatientMessage] = useState("");
   const [additionalContext, setAdditionalContext] = useState("");
   const [procedureId, setProcedureId] = useState(activeConversation?.procedure_id ?? "");
@@ -106,22 +109,6 @@ export function ConversationWorkspace({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const procedureNames = useMemo(
-    () => new Map(procedures.map((procedure) => [procedure.id, procedure.name])),
-    [procedures],
-  );
-
-  useEffect(() => {
-    setProcedureId(activeConversation?.procedure_id ?? "");
-    setPatientMessage("");
-    setAdditionalContext("");
-    setResult(latestResult?.result ?? null);
-    setDraftMessageId(latestResult?.draft_message_id ?? null);
-    setDraftText(latestResult?.result.response.primary_response ?? "");
-    setSentConfirmed(false);
-    setError(null);
-  }, [activeConversation?.id, activeConversation?.procedure_id, latestResult]);
-
   async function createConversation(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCreating(true);
@@ -131,19 +118,13 @@ export function ConversationWorkspace({
       const response = await fetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contactLabel,
-          channel: newChannel,
-          procedureId: newProcedureId || null,
-        }),
+        body: JSON.stringify({ contactLabel, channel: newChannel, procedureId: newProcedureId || null }),
       });
       const payload = (await response.json()) as { conversationId?: string; error?: string };
       if (!response.ok || !payload.conversationId) {
         throw new Error(payload.error || "Não foi possível criar a conversa.");
       }
 
-      setContactLabel("");
-      setShowNewConversation(false);
       router.push(`/app/responder?conversation=${payload.conversationId}`);
       router.refresh();
     } catch (createError) {
@@ -166,13 +147,8 @@ export function ConversationWorkspace({
       const response = await fetch(`/api/conversations/${activeConversation.id}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          patientMessage,
-          additionalContext,
-          procedureId: procedureId || null,
-        }),
+        body: JSON.stringify({ patientMessage, additionalContext, procedureId: procedureId || null }),
       });
-
       const payload = (await response.json()) as {
         result?: SpinEngineResult;
         draftMessageId?: string;
@@ -251,11 +227,7 @@ export function ConversationWorkspace({
       <aside className="card conversation-sidebar">
         <div className="conversation-sidebar-header">
           <div><span className="eyebrow">Fila comercial</span><h2>Conversas</h2></div>
-          <button
-            className="button button-primary button-small"
-            type="button"
-            onClick={() => setShowNewConversation((current) => !current)}
-          >
+          <button className="button button-primary button-small" type="button" onClick={() => setShowNewConversation((current) => !current)}>
             <MessageCirclePlus size={16} /> Nova
           </button>
         </div>
@@ -354,15 +326,11 @@ export function ConversationWorkspace({
               <div><span>Histórico confirmado</span><h2>Linha do tempo</h2></div>
               <MessageSquareText size={19} />
             </div>
-
             <div className="conversation-timeline">
               {messages.length === 0 ? (
                 <div className="empty-state">Cole a primeira mensagem recebida para iniciar a memória.</div>
               ) : messages.map((message) => (
-                <article
-                  className={`conversation-bubble conversation-bubble-${message.direction} ${message.status === "draft" ? "conversation-bubble-draft" : ""}`}
-                  key={message.id}
-                >
+                <article className={`conversation-bubble conversation-bubble-${message.direction} ${message.status === "draft" ? "conversation-bubble-draft" : ""}`} key={message.id}>
                   <div className="conversation-bubble-meta">
                     <strong>{message.direction === "patient" ? "Paciente" : "Clínica"}</strong>
                     <span>{message.status === "draft" ? "Rascunho, ainda não enviado" : formatDate(message.sent_at || message.created_at)}</span>
@@ -378,7 +346,6 @@ export function ConversationWorkspace({
               <div><span>Nova entrada</span><h2>Mensagem recebida</h2></div>
               <Sparkles size={19} />
             </div>
-
             <div className="field">
               <label htmlFor="conversation-procedure">Procedimento relacionado</label>
               <select className="select" id="conversation-procedure" value={procedureId} onChange={(event) => setProcedureId(event.target.value)}>
@@ -410,9 +377,7 @@ export function ConversationWorkspace({
                 placeholder="Ex.: a atendente ligou ontem, mas não conseguiu contato."
               />
             </div>
-
             {error && <div className="form-error">{error}</div>}
-
             <button
               className="button button-primary"
               disabled={!aiConfigured || loading || activeConversation.status !== "open" || patientMessage.trim().length < 2}
@@ -443,7 +408,6 @@ export function ConversationWorkspace({
                   {result.validation.safe_to_use ? "Validada" : "Revisar"}
                 </StatusPill>
               </div>
-
               <textarea
                 className="textarea conversation-draft-editor"
                 disabled={!draftMessageId || sentConfirmed}

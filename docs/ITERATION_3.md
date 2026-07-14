@@ -16,6 +16,8 @@ A resposta não é enviada automaticamente. A atendente permanece no controle.
 ```text
 Mensagem recebida
   ↓
+Remoção local de e-mail, telefone, CPF, CNPJ e links
+  ↓
 Carregamento do perfil comercial da clínica
   ↓
 Diagnóstico: intenção, necessidade, objeções, emoção e estágio
@@ -29,6 +31,15 @@ Validação: regras, preço, promessas e palavras proibidas
 Persistência separada no Supabase
 ```
 
+## Provedores de IA
+
+O motor usa uma camada substituível de provedores:
+
+- `gemini`: padrão atual, adequado ao MVP no plano gratuito;
+- `openai`: alternativa opcional para operação paga.
+
+A troca é feita por variável de ambiente e não exige alterar o motor SPIN ou o banco de dados.
+
 ## Tabelas
 
 - `spin_interactions`: entrada original, usuário, procedimento, modelo e estado da execução;
@@ -38,24 +49,38 @@ Persistência separada no Supabase
 
 Todas carregam `clinic_id` e possuem Row Level Security.
 
-## Segurança
+## Segurança e privacidade
 
-- a chave da OpenAI existe somente no servidor;
+- as chaves dos provedores existem somente no servidor;
 - a rota valida a sessão e deriva a clínica pelo usuário autenticado;
 - o cliente não escolhe livremente um `clinic_id`;
 - o procedimento selecionado precisa pertencer à clínica ativa;
-- o provedor recebe `store: false`;
+- e-mails, telefones, CPF, CNPJ e links são removidos antes da chamada externa;
 - mensagens são tratadas como dados, não como instruções de sistema;
-- resultados são submetidos a Structured Outputs e a validações determinísticas locais.
+- resultados usam JSON Schema e passam por validações determinísticas locais;
+- nomes próprios e outros identificadores difíceis de detectar automaticamente não devem ser enviados.
+
+No plano gratuito do Gemini, o conteúdo pode ser usado pelo Google para melhorar seus produtos. Por isso, esta configuração serve para validação do MVP e não deve receber dados médicos identificáveis.
 
 ## Variáveis
 
+### Gemini gratuito, padrão
+
 ```env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=SUA_CHAVE_PRIVADA
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+`AI_PROVIDER` e `GEMINI_MODEL` são opcionais. Sem eles, o sistema usa Gemini e `gemini-3.5-flash`.
+
+### OpenAI opcional
+
+```env
+AI_PROVIDER=openai
 OPENAI_API_KEY=SUA_CHAVE_PRIVADA
 OPENAI_MODEL=gpt-5-mini
 ```
-
-`OPENAI_MODEL` é opcional. Sem ele, o sistema usa `gpt-5-mini`.
 
 ## Critérios de conclusão
 

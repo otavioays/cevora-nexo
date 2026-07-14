@@ -6,43 +6,11 @@ import type {
   ClinicRule,
   Procedure,
   Professional,
+  SalesConversation,
+  SpinEngineResult,
 } from "@/lib/types";
 
-export type SpinEngineResult = {
-  analysis: {
-    interaction_stage: "opening" | "investigation" | "capability" | "commitment";
-    spin_stage: "situation" | "problem" | "implication" | "need_payoff" | "capability" | "commitment" | "none";
-    intent: string;
-    summary: string;
-    explicit_need: string;
-    implicit_need: string;
-    objections: string[];
-    emotional_state: string;
-    missing_information: string[];
-    risk_level: "low" | "medium" | "high";
-    confidence: number;
-  };
-  plan: {
-    next_objective: string;
-    recommended_strategy: string;
-    rationale: string;
-    should_present_offer: boolean;
-    should_request_commitment: boolean;
-    avoid_actions: string[];
-  };
-  response: {
-    primary_response: string;
-    alternative_response: string;
-    explanation: string;
-    expected_next_step: string;
-    warnings: string[];
-  };
-  validation: {
-    safe_to_use: boolean;
-    checks: string[];
-    issues: string[];
-  };
-};
+export type { SpinEngineResult } from "@/lib/types";
 
 export type SpinEngineInput = {
   clinicName: string;
@@ -55,6 +23,21 @@ export type SpinEngineInput = {
   rules: ClinicRule[];
   faqs: ClinicFaq[];
   approvedAnswers: ApprovedAnswer[];
+  conversationHistory?: Array<{ direction: "patient" | "clinic"; content: string }>;
+  conversationState?: Pick<
+    SalesConversation,
+    | "interaction_stage"
+    | "spin_stage"
+    | "summary"
+    | "explicit_need"
+    | "implicit_need"
+    | "objections"
+    | "emotional_state"
+    | "missing_information"
+    | "risk_level"
+    | "next_objective"
+    | "recommended_strategy"
+  > | null;
 };
 
 const spinResultSchema: Record<string, unknown> = {
@@ -118,13 +101,7 @@ const spinResultSchema: Record<string, unknown> = {
     response: {
       type: "object",
       additionalProperties: false,
-      required: [
-        "primary_response",
-        "alternative_response",
-        "explanation",
-        "expected_next_step",
-        "warnings",
-      ],
+      required: ["primary_response", "alternative_response", "explanation", "expected_next_step", "warnings"],
       properties: {
         primary_response: { type: "string" },
         alternative_response: { type: "string" },
@@ -232,8 +209,7 @@ function deterministicIssues(result: SpinEngineResult, input: SpinEngineInput) {
   if (response.length > 900) issues.push("A resposta recomendada está longa demais para uma conversa por mensagem.");
   if ((response.match(/\?/g) ?? []).length > 2) issues.push("A resposta contém perguntas demais em uma única mensagem.");
 
-  const riskyClaims = ["resultado garantido", "100% garantido", "sem risco", "vai ficar perfeito", "resultado perfeito"];
-  for (const claim of riskyClaims) {
+  for (const claim of ["resultado garantido", "100% garantido", "sem risco", "vai ficar perfeito", "resultado perfeito"]) {
     if (normalized.includes(claim)) issues.push(`Afirmação de risco detectada: “${claim}”.`);
   }
 
@@ -264,13 +240,23 @@ function deterministicIssues(result: SpinEngineResult, input: SpinEngineInput) {
 
 export async function runSpinEngine(input: SpinEngineInput) {
   const clinicContext = compactContext(input);
+  const history = (input.conversationHistory ?? []).slice(-30).map((message) => ({
+    direction: message.direction,
+    content: clip(message.content, 1200),
+  }));
 
   const system = `Você é o motor comercial do Cevora Nexo, especializado em vendas consultivas para clínicas.
 
 Seu trabalho possui três etapas obrigatórias e separadas:
-1. DIAGNOSTICAR a interação atual, sem inventar contexto.
+1. DIAGNOSTICAR a interação atual usando o histórico confirmado da conversa.
 2. DECIDIR o único melhor próximo movimento comercial usando SPIN Selling.
 3. ESCREVER uma resposta curta, humana e pronta para envio.
+
+REGRAS DE MEMÓRIA:
+- Mensagens da clínica só aparecem no histórico quando foram marcadas como enviadas.
+- O estado acumulado é uma memória provisória: atualize-o quando a mensagem atual trouxer evidência nova.
+- Não repita perguntas já respondidas no histórico.
+- Não trate um rascunho anterior como algo que o paciente recebeu.
 
 REGRAS DE RACIOCÍNIO SPIN:
 - Situação: use apenas quando faltar um fato indispensável. Evite interrogatório.
@@ -297,18 +283,26 @@ Retorne exatamente o objeto estruturado solicitado.`;
   const user = `CONTEXTO AUTORIZADO DA CLÍNICA:
 ${JSON.stringify(clinicContext, null, 2)}
 
-<<<MENSAGEM_DO_PACIENTE>>>
+<<<ESTADO_COMERCIAL_ACUMULADO>>>
+${JSON.stringify(input.conversationState ?? null, null, 2)}
+<<<FIM_ESTADO_COMERCIAL>>>
+
+<<<HISTÓRICO_CONFIRMADO_DA_CONVERSA>>>
+${JSON.stringify(history, null, 2)}
+<<<FIM_HISTÓRICO>>>
+
+<<<MENSAGEM_ATUAL_DO_PACIENTE>>>
 ${input.patientMessage.trim()}
-<<<FIM_MENSAGEM_DO_PACIENTE>>>
+<<<FIM_MENSAGEM_ATUAL>>>
 
 <<<CONTEXTO_ADICIONAL_DA_ATENDENTE>>>
 ${input.additionalContext.trim() || "Nenhum contexto adicional informado."}
 <<<FIM_CONTEXTO_ADICIONAL>>>
 
-Produza o diagnóstico, o plano, a resposta recomendada e a validação.`;
+Produza o diagnóstico atualizado da conversa inteira, o plano para o próximo movimento, a resposta recomendada e a validação.`;
 
   const { result, model } = await generateStructuredResponse<SpinEngineResult>({
-    name: "cevora_spin_result",
+    name: "cevora_spin_conversation_result",
     schema: spinResultSchema,
     system,
     user,

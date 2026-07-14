@@ -34,9 +34,21 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - explicação estratégica e próximo passo esperado;
 - validação contra preço, promessas e palavras proibidas;
 - persistência separada de interação, diagnóstico, plano e resposta;
-- histórico recente por clínica;
 - Gemini gratuito como provedor padrão e OpenAI como alternativa opcional;
 - remoção local de e-mail, telefone, CPF, CNPJ e links antes da chamada externa.
+
+## Iteração 4: conversas com memória
+
+- criação de conversas por referência interna;
+- canal e procedimento associados;
+- linha do tempo de mensagens recebidas e respostas enviadas;
+- rascunhos gerados separados do histórico confirmado;
+- edição da resposta antes da confirmação;
+- memória acumulada de necessidades, objeções, emoção e estágio SPIN;
+- atualização do próximo objetivo a cada nova mensagem;
+- desfechos `open`, `won`, `lost` e `archived`;
+- funções atômicas para criação, análise, confirmação de envio e encerramento;
+- isolamento multi-clínica preservado por RLS.
 
 ## Stack
 
@@ -67,6 +79,8 @@ supabase/migrations/202607140002_iteration_1_functions.sql
 supabase/migrations/202607140003_iteration_2_commercial_profile.sql
 supabase/migrations/202607140004_iteration_3_spin_engine.sql
 supabase/migrations/202607140005_iteration_3_functions.sql
+supabase/migrations/202607140006_iteration_4_conversations.sql
+supabase/migrations/202607140007_iteration_4_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -134,7 +148,8 @@ npm run build
 - `docs/ITERATION_1.md`
 - `docs/ITERATION_2.md`
 - `docs/ITERATION_3.md`
+- `docs/ITERATION_4.md`
 
 ## Próxima iteração
 
-A Iteração 4 transformará análises isoladas em conversas completas, preservando histórico, estado comercial e memória de contexto entre mensagens.
+A Iteração 5 adicionará cadastro operacional de contatos e pacientes, responsáveis, origem do lead e uma linha do tempo unificada para tarefas e documentos.

@@ -11,7 +11,7 @@ import { initials } from "@/lib/utils";
 
 const navigation = [
   { href: "/app", label: "Visão geral", icon: LayoutDashboard },
-  { href: "/app/responder", label: "Gerar resposta", icon: MessageSquareText },
+  { href: "/app/responder", label: "Conversas", icon: MessageSquareText },
   { href: "/app/perfil-comercial", label: "Perfil comercial", icon: BookOpenCheck },
   { href: "/app/equipe", label: "Equipe", icon: Users },
   { href: "/app/configuracoes", label: "Configurações", icon: Settings },

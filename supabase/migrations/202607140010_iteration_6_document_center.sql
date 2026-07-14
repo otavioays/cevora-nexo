@@ -31,17 +31,14 @@ create type public.patient_document_event_type as enum (
 alter type public.patient_timeline_event_type add value if not exists 'document_created';
 alter type public.patient_timeline_event_type add value if not exists 'document_status';
 
-alter table public.professionals
-  add constraint professionals_id_clinic_key unique (id, clinic_id);
-
 create table public.patient_documents (
   id uuid primary key default gen_random_uuid(),
   clinic_id uuid not null references public.clinics(id) on delete cascade,
   patient_id uuid not null,
   created_by uuid not null references public.profiles(id) on delete restrict,
   assigned_to uuid references public.profiles(id) on delete set null,
-  professional_id uuid,
-  procedure_id uuid,
+  professional_id uuid references public.professionals(id) on delete set null,
+  procedure_id uuid references public.procedures(id) on delete set null,
   document_type public.patient_document_type not null,
   title text not null check (char_length(trim(title)) between 2 and 180),
   description text not null default '',
@@ -60,14 +57,6 @@ create table public.patient_documents (
     foreign key (patient_id, clinic_id)
     references public.patients(id, clinic_id)
     on delete cascade,
-  constraint patient_documents_professional_fk
-    foreign key (professional_id, clinic_id)
-    references public.professionals(id, clinic_id)
-    on delete set null,
-  constraint patient_documents_procedure_fk
-    foreign key (procedure_id, clinic_id)
-    references public.procedures(id, clinic_id)
-    on delete set null,
   constraint patient_documents_file_consistency check (
     (storage_path = '' and file_name = '' and mime_type = '' and size_bytes = 0)
     or (storage_path <> '' and file_name <> '' and mime_type <> '' and size_bytes > 0)

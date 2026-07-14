@@ -38,7 +38,7 @@ O motor usa uma camada substituível de provedores:
 - `gemini`: padrão atual, adequado ao MVP no plano gratuito;
 - `openai`: alternativa opcional para operação paga.
 
-A troca é feita por variável de ambiente e não exige alterar o motor SPIN ou o banco de dados.
+A troca é feita por variável de ambiente e não exige alterar o motor SPIN ou o banco de dados. O plano gratuito possui limites de requisições; quando eles forem atingidos, o Nexo informa a atendente para tentar novamente mais tarde.
 
 ## Tabelas
 

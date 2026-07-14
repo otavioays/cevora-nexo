@@ -110,7 +110,7 @@ npm run dev
 
 ## Privacidade no modo gratuito
 
-O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google. Portanto, não envie dados médicos identificáveis nessa configuração de MVP.
+O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google e possui limites de uso. Portanto, não envie dados médicos identificáveis nessa configuração de MVP.
 
 ## Primeiro administrador da plataforma
 

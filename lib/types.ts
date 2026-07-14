@@ -11,6 +11,17 @@ export type SalesConversationStatus = "open" | "won" | "lost" | "archived";
 export type SalesConversationChannel = "whatsapp" | "instagram" | "phone" | "other";
 export type ConversationMessageDirection = "patient" | "clinic";
 export type ConversationMessageStatus = "received" | "draft" | "sent";
+export type PatientStatus = "lead" | "qualified" | "scheduled" | "converted" | "inactive" | "lost";
+export type PatientProcedureStatus = "interested" | "evaluating" | "scheduled" | "completed" | "discarded";
+export type PatientTimelineEventType =
+  | "created"
+  | "note"
+  | "profile_update"
+  | "status_change"
+  | "procedure_interest"
+  | "conversation_linked"
+  | "conversation_unlinked"
+  | "conversation_outcome";
 
 export interface Clinic {
   id: string;
@@ -215,11 +226,64 @@ export interface SpinHistoryItem {
   safe_to_use: boolean | null;
 }
 
+export interface Patient {
+  id: string;
+  clinic_id: string;
+  created_by: string;
+  assigned_to: string | null;
+  reference_label: string;
+  status: PatientStatus;
+  source: string;
+  internal_notes: string;
+  last_activity_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PatientListItem extends Patient {
+  assigned_name: string | null;
+  procedure_count: number;
+  conversation_count: number;
+}
+
+export interface PatientAssignee {
+  id: string;
+  name: string;
+  role: ClinicRole;
+}
+
+export interface PatientProcedureInterest {
+  id: string;
+  patient_id: string;
+  clinic_id: string;
+  procedure_id: string;
+  status: PatientProcedureStatus;
+  notes: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  procedure_name: string;
+}
+
+export interface PatientTimelineEvent {
+  id: string;
+  patient_id: string;
+  clinic_id: string;
+  event_type: PatientTimelineEventType;
+  title: string;
+  description: string;
+  metadata: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+  author_name: string | null;
+}
+
 export interface SalesConversation {
   id: string;
   clinic_id: string;
   created_by: string;
   assigned_to: string | null;
+  patient_id: string | null;
   procedure_id: string | null;
   contact_label: string;
   channel: SalesConversationChannel;
@@ -242,6 +306,7 @@ export interface SalesConversation {
 
 export interface SalesConversationListItem extends SalesConversation {
   procedure_name: string | null;
+  patient_label: string | null;
 }
 
 export interface ConversationMessage {

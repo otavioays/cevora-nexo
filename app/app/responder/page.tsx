@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   ConversationLatestResult,
   ConversationMessage,
+  Patient,
   Procedure,
   SalesConversation,
   SalesConversationListItem,
@@ -29,7 +30,7 @@ export default async function ResponderPage({ searchParams }: PageProps) {
   const supabase = await createClient();
   const params = await searchParams;
 
-  const [{ data: procedureRows }, { data: conversationRows }] = await Promise.all([
+  const [{ data: procedureRows }, { data: conversationRows }, { data: patientRows }] = await Promise.all([
     supabase
       .from("procedures")
       .select("*")
@@ -42,15 +43,24 @@ export default async function ResponderPage({ searchParams }: PageProps) {
       .select("*")
       .eq("clinic_id", activeMembership.clinic_id)
       .order("last_message_at", { ascending: false })
-      .limit(40),
+      .limit(60),
+    supabase
+      .from("patients")
+      .select("*")
+      .eq("clinic_id", activeMembership.clinic_id)
+      .order("last_activity_at", { ascending: false })
+      .limit(120),
   ]);
 
   const procedures = (procedureRows ?? []) as Procedure[];
+  const patients = (patientRows ?? []) as Patient[];
   const procedureNames = new Map(procedures.map((procedure) => [procedure.id, procedure.name]));
+  const patientNames = new Map(patients.map((patient) => [patient.id, patient.reference_label]));
   const rawConversations = (conversationRows ?? []) as SalesConversation[];
   const conversations: SalesConversationListItem[] = rawConversations.map((conversation) => ({
     ...conversation,
     procedure_name: conversation.procedure_id ? procedureNames.get(conversation.procedure_id) ?? null : null,
+    patient_label: conversation.patient_id ? patientNames.get(conversation.patient_id) ?? null : null,
   }));
 
   const requestedConversation = params.conversation;
@@ -150,18 +160,17 @@ export default async function ResponderPage({ searchParams }: PageProps) {
           <span className="eyebrow">Memória comercial contínua</span>
           <h1>Conversas</h1>
           <p>
-            O Nexo agora acompanha a evolução da conversa, preserva somente respostas confirmadas como enviadas
-            e atualiza o próximo movimento comercial a cada nova mensagem.
+            O Nexo acompanha cada atendimento e agora pode conectá-lo ao histórico completo da mesma pessoa.
           </p>
         </div>
-        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 4 ativa</StatusPill>
+        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 5 ativa</StatusPill>
       </header>
 
       <div className="permission-note spin-page-note">
         <BrainCircuit size={18} /> Rascunhos gerados não entram na memória até a atendente confirmar que foram realmente enviados.
       </div>
       <div className="permission-note spin-page-note">
-        <ShieldCheck size={18} /> Continue usando referências internas e mensagens fictícias ou anonimizadas durante o MVP gratuito.
+        <ShieldCheck size={18} /> A referência interna do paciente nunca é enviada à IA. Somente memória comercial anonimizada pode atravessar conversas vinculadas.
       </div>
 
       {!aiConfigured && (
@@ -173,6 +182,7 @@ export default async function ResponderPage({ searchParams }: PageProps) {
       <ConversationWorkspace
         key={workspaceKey}
         procedures={procedures}
+        patients={patients}
         conversations={conversations}
         activeConversation={activeConversation}
         messages={messages}

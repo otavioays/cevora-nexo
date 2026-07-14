@@ -50,6 +50,18 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - funções atômicas para criação, análise, confirmação de envio e encerramento;
 - isolamento multi-clínica preservado por RLS.
 
+## Iteração 5: pacientes e linha do tempo
+
+- cadastro de pacientes e leads por referência interna;
+- origem, responsável e estágio geral do relacionamento;
+- procedimentos de interesse com estágio próprio;
+- notas e eventos em linha do tempo consolidada;
+- várias conversas vinculadas à mesma pessoa;
+- associação e desvinculação diretamente nas telas de pacientes e conversas;
+- memória comercial anonimizada entre conversas vinculadas;
+- referência do cadastro mantida fora do prompt da IA;
+- mutações somente por funções seguras e isolamento por RLS.
+
 ## Stack
 
 - Next.js com App Router e TypeScript
@@ -81,6 +93,8 @@ supabase/migrations/202607140004_iteration_3_spin_engine.sql
 supabase/migrations/202607140005_iteration_3_functions.sql
 supabase/migrations/202607140006_iteration_4_conversations.sql
 supabase/migrations/202607140007_iteration_4_functions.sql
+supabase/migrations/202607140008_iteration_5_patients.sql
+supabase/migrations/202607140009_iteration_5_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -126,6 +140,8 @@ npm run dev
 
 O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google e possui limites de uso. Portanto, não envie dados médicos identificáveis nessa configuração de MVP.
 
+O módulo de pacientes desta etapa é comercial e operacional. Ele não substitui prontuário e não deve armazenar diagnóstico, prescrição, documento, exame ou informação clínica sensível.
+
 ## Primeiro administrador da plataforma
 
 A tabela `platform_admins` não é editável pelo navegador. Depois de criar sua conta, localize seu UUID em `auth.users` e execute no SQL Editor:
@@ -149,7 +165,8 @@ npm run build
 - `docs/ITERATION_2.md`
 - `docs/ITERATION_3.md`
 - `docs/ITERATION_4.md`
+- `docs/ITERATION_5.md`
 
 ## Próxima iteração
 
-A Iteração 5 adicionará cadastro operacional de contatos e pacientes, responsáveis, origem do lead e uma linha do tempo unificada para tarefas e documentos.
+A Iteração 6 construirá a Central de Documentos do Paciente, começando pelo fluxo interno de criação, assinatura, envio e auditoria, sem integrações externas complexas.

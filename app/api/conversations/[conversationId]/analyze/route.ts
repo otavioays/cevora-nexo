@@ -126,6 +126,39 @@ export async function POST(
     return NextResponse.json({ error: "O procedimento selecionado não pertence à clínica ou está inativo." }, { status: 400 });
   }
 
+  let patientMemoryContext = "";
+  if (conversation.patient_id) {
+    const { data: relatedConversations, error: relatedError } = await supabase
+      .from("sales_conversations")
+      .select("id, procedure_id, status, summary, explicit_need, implicit_need, objections, emotional_state, next_objective, recommended_strategy, last_message_at")
+      .eq("clinic_id", clinicId)
+      .eq("patient_id", conversation.patient_id)
+      .neq("id", conversation.id)
+      .order("last_message_at", { ascending: false })
+      .limit(8);
+
+    if (relatedError) {
+      return NextResponse.json({ error: "Não foi possível carregar a memória comercial vinculada ao paciente." }, { status: 500 });
+    }
+
+    const procedureNames = new Map(procedures.map((procedure) => [procedure.id, procedure.name]));
+    const safeMemory = (relatedConversations ?? []).map((related) => ({
+      procedure: related.procedure_id ? procedureNames.get(related.procedure_id) ?? "não identificado" : "não identificado",
+      status: related.status,
+      summary: anonymizeForExternalAi(related.summary || ""),
+      explicit_need: anonymizeForExternalAi(related.explicit_need || ""),
+      implicit_need: anonymizeForExternalAi(related.implicit_need || ""),
+      objections: (related.objections ?? []).map((item: string) => anonymizeForExternalAi(item)),
+      emotional_state: anonymizeForExternalAi(related.emotional_state || ""),
+      next_objective: anonymizeForExternalAi(related.next_objective || ""),
+      recommended_strategy: anonymizeForExternalAi(related.recommended_strategy || ""),
+    }));
+
+    if (safeMemory.length > 0) {
+      patientMemoryContext = `\n\nMEMÓRIA COMERCIAL DE OUTRAS CONVERSAS VINCULADAS À MESMA PESSOA:\n${JSON.stringify(safeMemory)}\nUse apenas como contexto histórico. Não presuma que necessidades antigas continuam atuais sem evidência na conversa atual.`;
+    }
+  }
+
   const { data: startData, error: startError } = await supabase.rpc("start_conversation_turn", {
     p_conversation_id: conversation.id,
     p_patient_message: patientMessage,
@@ -147,7 +180,7 @@ export async function POST(
     const { model, result } = await runSpinEngine({
       clinicName: membership.clinic.name,
       patientMessage: anonymizeForExternalAi(patientMessage),
-      additionalContext: anonymizeForExternalAi(additionalContext),
+      additionalContext: anonymizeForExternalAi(`${additionalContext}${patientMemoryContext}`),
       selectedProcedureId: procedureId,
       profile: (profileResult.data ?? null) as ClinicCommercialProfile | null,
       procedures,

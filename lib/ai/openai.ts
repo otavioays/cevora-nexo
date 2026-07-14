@@ -1,7 +1,4 @@
-import {
-  generateGeminiStructuredResponse,
-  type StructuredResponseOptions,
-} from "@/lib/ai/gemini";
+import type { StructuredResponseOptions } from "@/lib/ai/gemini";
 
 type OpenAIResponsePayload = {
   status?: string;
@@ -119,12 +116,4 @@ export async function generateOpenAIStructuredResponse<T>({
   } finally {
     clearTimeout(timeout);
   }
-}
-
-export async function generateStructuredResponse<T>(options: StructuredResponseOptions) {
-  if (process.env.AI_PROVIDER?.trim().toLowerCase() === "openai") {
-    return generateOpenAIStructuredResponse<T>(options);
-  }
-
-  return generateGeminiStructuredResponse<T>(options);
 }

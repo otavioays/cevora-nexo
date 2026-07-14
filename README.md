@@ -23,13 +23,26 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - consulta somente leitura para atendentes;
 - indicador de completude do contexto disponível para a IA.
 
-A inteligência SPIN entra na Iteração 3. Ela consultará o perfil comercial antes de diagnosticar a conversa, planejar o próximo movimento e redigir a resposta.
+## Iteração 3: motor SPIN por texto
+
+- entrada manual da mensagem do paciente;
+- procedimento e contexto adicional opcionais;
+- diagnóstico comercial antes da escrita;
+- identificação de estágio da interação e movimento SPIN;
+- planejamento explícito do próximo objetivo;
+- resposta principal e alternativa;
+- explicação estratégica e próximo passo esperado;
+- validação contra preço, promessas e palavras proibidas;
+- persistência separada de interação, diagnóstico, plano e resposta;
+- histórico recente por clínica;
+- chamada de IA somente no servidor, com armazenamento desativado no provedor.
 
 ## Stack
 
 - Next.js com App Router e TypeScript
 - React
 - Supabase Auth + PostgreSQL + RLS
+- OpenAI Responses API com Structured Outputs
 - CSS próprio
 - GitHub Actions para lint, tipagem e build
 - Vercel para deploy
@@ -50,6 +63,8 @@ npm install
 supabase/migrations/202607140001_iteration_1_schema.sql
 supabase/migrations/202607140002_iteration_1_functions.sql
 supabase/migrations/202607140003_iteration_2_commercial_profile.sql
+supabase/migrations/202607140004_iteration_3_spin_engine.sql
+supabase/migrations/202607140005_iteration_3_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -63,7 +78,11 @@ cp .env.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_PUBLICÁVEL
+OPENAI_API_KEY=SUA_CHAVE_PRIVADA_DA_OPENAI
+OPENAI_MODEL=gpt-5-mini
 ```
+
+A variável `OPENAI_API_KEY` é usada somente em rotas do servidor. Nunca use o prefixo `NEXT_PUBLIC_` nela.
 
 6. No Supabase Auth, adicione as URLs de redirecionamento:
 
@@ -99,7 +118,8 @@ npm run build
 
 - `docs/ITERATION_1.md`
 - `docs/ITERATION_2.md`
+- `docs/ITERATION_3.md`
 
 ## Próxima iteração
 
-A Iteração 3 entregará o primeiro motor utilizável por texto: diagnóstico comercial, planejamento SPIN, geração da resposta e validação contra as regras da clínica.
+A Iteração 4 transformará análises isoladas em conversas completas, preservando histórico, estado comercial e memória de contexto entre mensagens.

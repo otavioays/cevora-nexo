@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasOpenAIEnv } from "@/lib/ai/openai";
+import { hasAiEnv } from "@/lib/ai/provider";
+import { anonymizeForExternalAi } from "@/lib/ai/privacy";
 import { runSpinEngine } from "@/lib/ai/spin-engine";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sua sessão expirou. Entre novamente." }, { status: 401 });
   }
 
-  if (!hasOpenAIEnv()) {
+  if (!hasAiEnv()) {
     return NextResponse.json(
       { error: "O motor de IA ainda não foi configurado no servidor." },
       { status: 503 },
@@ -155,8 +156,8 @@ export async function POST(request: Request) {
   try {
     const { model, result } = await runSpinEngine({
       clinicName: membership.clinic.name,
-      patientMessage,
-      additionalContext,
+      patientMessage: anonymizeForExternalAi(patientMessage),
+      additionalContext: anonymizeForExternalAi(additionalContext),
       selectedProcedureId: procedureId,
       profile: (profileResult.data ?? null) as ClinicCommercialProfile | null,
       procedures,

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { BrainCircuit, CheckCircle2, ShieldCheck } from "lucide-react";
 import { SpinWorkbench } from "@/components/spin/spin-workbench";
 import { StatusPill } from "@/components/ui/status-pill";
-import { hasOpenAIEnv } from "@/lib/ai/openai";
+import { hasAiEnv } from "@/lib/ai/provider";
 import { requireMembership } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Procedure, SpinHistoryItem, SpinStage } from "@/lib/types";
@@ -86,6 +86,8 @@ export default async function ResponderPage() {
     };
   });
 
+  const aiConfigured = hasAiEnv();
+
   return (
     <>
       <header className="page-header">
@@ -104,16 +106,20 @@ export default async function ResponderPage() {
         <BrainCircuit size={18} /> O diagnóstico, o plano e a resposta são gravados separadamente. Assim podemos melhorar o motor sem perder o histórico do raciocínio comercial.
       </div>
 
-      {!hasOpenAIEnv() && (
+      <div className="permission-note spin-page-note">
+        <ShieldCheck size={18} /> No modo gratuito, o Nexo remove automaticamente e-mails, telefones, CPF, CNPJ e links antes de chamar a IA. Ainda assim, não cole nomes completos nem dados médicos identificáveis.
+      </div>
+
+      {!aiConfigured && (
         <div className="permission-note spin-page-note spin-config-note">
-          <ShieldCheck size={18} /> Falta configurar <code>OPENAI_API_KEY</code> na Vercel para liberar as análises.
+          <ShieldCheck size={18} /> Falta configurar <code>GEMINI_API_KEY</code> na Vercel para liberar as análises gratuitas.
         </div>
       )}
 
       <SpinWorkbench
         procedures={procedures}
         initialHistory={history}
-        aiConfigured={hasOpenAIEnv()}
+        aiConfigured={aiConfigured}
       />
     </>
   );

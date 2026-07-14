@@ -74,12 +74,8 @@ export async function generateGeminiStructuredResponse<T>({
           generationConfig: {
             temperature: 0.2,
             maxOutputTokens: 3000,
-            responseFormat: {
-              text: {
-                mimeType: "application/json",
-                schema,
-              },
-            },
+            responseMimeType: "application/json",
+            responseJsonSchema: schema,
           },
         }),
         signal: controller.signal,

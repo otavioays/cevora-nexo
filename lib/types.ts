@@ -21,7 +21,25 @@ export type PatientTimelineEventType =
   | "procedure_interest"
   | "conversation_linked"
   | "conversation_unlinked"
-  | "conversation_outcome";
+  | "conversation_outcome"
+  | "document_created"
+  | "document_status";
+export type PatientDocumentType =
+  | "prescription"
+  | "exam_request"
+  | "medical_certificate"
+  | "informed_consent"
+  | "instructions"
+  | "report"
+  | "other";
+export type PatientDocumentStatus =
+  | "created"
+  | "awaiting_signature"
+  | "ready_to_send"
+  | "sent"
+  | "viewed"
+  | "cancelled";
+export type PatientDocumentEventType = "created" | "file_uploaded" | "status_changed" | "note" | "downloaded";
 
 export interface Clinic {
   id: string;
@@ -270,6 +288,50 @@ export interface PatientTimelineEvent {
   patient_id: string;
   clinic_id: string;
   event_type: PatientTimelineEventType;
+  title: string;
+  description: string;
+  metadata: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+  author_name: string | null;
+}
+
+export interface PatientDocument {
+  id: string;
+  clinic_id: string;
+  patient_id: string;
+  created_by: string;
+  assigned_to: string | null;
+  professional_id: string | null;
+  procedure_id: string | null;
+  document_type: PatientDocumentType;
+  title: string;
+  description: string;
+  status: PatientDocumentStatus;
+  file_name: string;
+  storage_path: string;
+  mime_type: string;
+  size_bytes: number;
+  sent_at: string | null;
+  viewed_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PatientDocumentListItem extends PatientDocument {
+  patient_label: string;
+  assigned_name: string | null;
+  professional_name: string | null;
+  procedure_name: string | null;
+}
+
+export interface PatientDocumentEvent {
+  id: string;
+  document_id: string;
+  patient_id: string;
+  clinic_id: string;
+  event_type: PatientDocumentEventType;
   title: string;
   description: string;
   metadata: Record<string, unknown>;

@@ -107,7 +107,7 @@ export async function generateGeminiStructuredResponse<T>({
       throw new Error("O Gemini não retornou uma resposta para esta análise.");
     }
 
-    if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) {
+    if (candidate.finishReason && candidate.finishReason !== "STOP") {
       throw new Error(`A análise foi interrompida pelo Gemini: ${candidate.finishReason}.`);
     }
 

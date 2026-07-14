@@ -7,6 +7,10 @@ export type SpinInteractionStatus = "processing" | "completed" | "failed";
 export type SalesInteractionStage = "opening" | "investigation" | "capability" | "commitment";
 export type SpinStage = "situation" | "problem" | "implication" | "need_payoff" | "capability" | "commitment" | "none";
 export type SpinRiskLevel = "low" | "medium" | "high";
+export type SalesConversationStatus = "open" | "won" | "lost" | "archived";
+export type SalesConversationChannel = "whatsapp" | "instagram" | "phone" | "other";
+export type ConversationMessageDirection = "patient" | "clinic";
+export type ConversationMessageStatus = "received" | "draft" | "sent";
 
 export interface Clinic {
   id: string;
@@ -209,4 +213,53 @@ export interface SpinHistoryItem {
   intent: string | null;
   primary_response: string | null;
   safe_to_use: boolean | null;
+}
+
+export interface SalesConversation {
+  id: string;
+  clinic_id: string;
+  created_by: string;
+  assigned_to: string | null;
+  procedure_id: string | null;
+  contact_label: string;
+  channel: SalesConversationChannel;
+  status: SalesConversationStatus;
+  interaction_stage: SalesInteractionStage;
+  spin_stage: SpinStage;
+  summary: string;
+  explicit_need: string;
+  implicit_need: string;
+  objections: string[];
+  emotional_state: string;
+  missing_information: string[];
+  risk_level: SpinRiskLevel;
+  next_objective: string;
+  recommended_strategy: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SalesConversationListItem extends SalesConversation {
+  procedure_name: string | null;
+}
+
+export interface ConversationMessage {
+  id: string;
+  conversation_id: string;
+  clinic_id: string;
+  interaction_id: string | null;
+  direction: ConversationMessageDirection;
+  status: ConversationMessageStatus;
+  content: string;
+  created_by: string;
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationLatestResult {
+  interaction_id: string;
+  draft_message_id: string | null;
+  result: SpinEngineResult;
 }

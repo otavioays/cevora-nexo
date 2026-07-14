@@ -1,8 +1,15 @@
+export type StructuredResponseAttachment = {
+  fileName: string;
+  mimeType: "application/pdf" | "image/jpeg" | "image/png";
+  dataBase64: string;
+};
+
 export type StructuredResponseOptions = {
   name: string;
   schema: Record<string, unknown>;
   system: string;
   user: string;
+  attachment?: StructuredResponseAttachment;
 };
 
 type GeminiResponsePayload = {
@@ -42,6 +49,7 @@ export async function generateGeminiStructuredResponse<T>({
   schema,
   system,
   user,
+  attachment,
 }: StructuredResponseOptions): Promise<{ result: T; model: string }> {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
@@ -50,7 +58,18 @@ export async function generateGeminiStructuredResponse<T>({
 
   const model = getGeminiModel();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 75_000);
+  const timeout = setTimeout(() => controller.abort(), 90_000);
+  const parts: Array<Record<string, unknown>> = [];
+
+  if (attachment) {
+    parts.push({
+      inlineData: {
+        mimeType: attachment.mimeType,
+        data: attachment.dataBase64,
+      },
+    });
+  }
+  parts.push({ text: user });
 
   try {
     const response = await fetch(
@@ -68,11 +87,11 @@ export async function generateGeminiStructuredResponse<T>({
           contents: [
             {
               role: "user",
-              parts: [{ text: user }],
+              parts,
             },
           ],
           generationConfig: {
-            temperature: 0.2,
+            temperature: 0.1,
             maxOutputTokens: 3000,
             responseMimeType: "application/json",
             responseJsonSchema: schema,

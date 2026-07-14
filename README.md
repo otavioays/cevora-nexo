@@ -23,13 +23,28 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - consulta somente leitura para atendentes;
 - indicador de completude do contexto disponível para a IA.
 
-A inteligência SPIN entra na Iteração 3. Ela consultará o perfil comercial antes de diagnosticar a conversa, planejar o próximo movimento e redigir a resposta.
+## Iteração 3: motor SPIN por texto
+
+- entrada manual da mensagem do paciente;
+- procedimento e contexto adicional opcionais;
+- diagnóstico comercial antes da escrita;
+- identificação de estágio da interação e movimento SPIN;
+- planejamento explícito do próximo objetivo;
+- resposta principal e alternativa;
+- explicação estratégica e próximo passo esperado;
+- validação contra preço, promessas e palavras proibidas;
+- persistência separada de interação, diagnóstico, plano e resposta;
+- histórico recente por clínica;
+- Gemini gratuito como provedor padrão e OpenAI como alternativa opcional;
+- remoção local de e-mail, telefone, CPF, CNPJ e links antes da chamada externa.
 
 ## Stack
 
 - Next.js com App Router e TypeScript
 - React
 - Supabase Auth + PostgreSQL + RLS
+- Gemini API com JSON Schema
+- camada substituível de provedores de IA
 - CSS próprio
 - GitHub Actions para lint, tipagem e build
 - Vercel para deploy
@@ -50,6 +65,8 @@ npm install
 supabase/migrations/202607140001_iteration_1_schema.sql
 supabase/migrations/202607140002_iteration_1_functions.sql
 supabase/migrations/202607140003_iteration_2_commercial_profile.sql
+supabase/migrations/202607140004_iteration_3_spin_engine.sql
+supabase/migrations/202607140005_iteration_3_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -63,6 +80,19 @@ cp .env.example .env.local
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_PUBLICÁVEL
+AI_PROVIDER=gemini
+GEMINI_API_KEY=SUA_CHAVE_PRIVADA_DO_GEMINI
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+As chaves de IA são usadas somente em rotas do servidor. Nunca use o prefixo `NEXT_PUBLIC_` nelas.
+
+Para usar OpenAI posteriormente:
+
+```env
+AI_PROVIDER=openai
+OPENAI_API_KEY=SUA_CHAVE_PRIVADA_DA_OPENAI
+OPENAI_MODEL=gpt-5-mini
 ```
 
 6. No Supabase Auth, adicione as URLs de redirecionamento:
@@ -77,6 +107,10 @@ https://SEU-DOMINIO/auth/callback
 ```bash
 npm run dev
 ```
+
+## Privacidade no modo gratuito
+
+O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google e possui limites de uso. Portanto, não envie dados médicos identificáveis nessa configuração de MVP.
 
 ## Primeiro administrador da plataforma
 
@@ -99,7 +133,8 @@ npm run build
 
 - `docs/ITERATION_1.md`
 - `docs/ITERATION_2.md`
+- `docs/ITERATION_3.md`
 
 ## Próxima iteração
 
-A Iteração 3 entregará o primeiro motor utilizável por texto: diagnóstico comercial, planejamento SPIN, geração da resposta e validação contra as regras da clínica.
+A Iteração 4 transformará análises isoladas em conversas completas, preservando histórico, estado comercial e memória de contexto entre mensagens.

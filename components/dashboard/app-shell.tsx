@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpenCheck, Building2, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import { BookOpenCheck, Building2, LayoutDashboard, LogOut, MessageSquareText, Settings, Users } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { ROLE_LABELS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
@@ -11,6 +11,7 @@ import { initials } from "@/lib/utils";
 
 const navigation = [
   { href: "/app", label: "Visão geral", icon: LayoutDashboard },
+  { href: "/app/responder", label: "Gerar resposta", icon: MessageSquareText },
   { href: "/app/perfil-comercial", label: "Perfil comercial", icon: BookOpenCheck },
   { href: "/app/equipe", label: "Equipe", icon: Users },
   { href: "/app/configuracoes", label: "Configurações", icon: Settings },

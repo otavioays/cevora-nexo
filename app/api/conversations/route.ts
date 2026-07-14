@@ -8,6 +8,7 @@ type CreateConversationRequest = {
   contactLabel?: unknown;
   channel?: unknown;
   procedureId?: unknown;
+  patientId?: unknown;
 };
 
 const CHANNELS: SalesConversationChannel[] = ["whatsapp", "instagram", "phone", "other"];
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
     ? (body.channel as SalesConversationChannel)
     : "whatsapp";
   const procedureId = typeof body.procedureId === "string" && body.procedureId ? body.procedureId : null;
+  const patientId = typeof body.patientId === "string" && body.patientId ? body.patientId : null;
 
   if (contactLabel.length < 2) {
     return NextResponse.json({ error: "Informe uma referência para identificar a conversa." }, { status: 400 });
@@ -47,11 +49,12 @@ export async function POST(request: Request) {
   }
 
   const membership = membershipRow as unknown as Membership;
-  const { data, error } = await supabase.rpc("create_sales_conversation", {
+  const { data, error } = await supabase.rpc("create_sales_conversation_with_patient", {
     p_clinic_id: membership.clinic_id,
     p_contact_label: contactLabel,
     p_channel: channel,
     p_procedure_id: procedureId,
+    p_patient_id: patientId,
   });
 
   if (error || !data) {

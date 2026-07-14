@@ -141,6 +141,7 @@ export default async function ResponderPage({ searchParams }: PageProps) {
   }
 
   const aiConfigured = hasAiEnv();
+  const workspaceKey = `${activeConversation?.id ?? "none"}:${latestResult?.interaction_id ?? "empty"}`;
 
   return (
     <>
@@ -170,6 +171,7 @@ export default async function ResponderPage({ searchParams }: PageProps) {
       )}
 
       <ConversationWorkspace
+        key={workspaceKey}
         procedures={procedures}
         conversations={conversations}
         activeConversation={activeConversation}

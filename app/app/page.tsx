@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CheckCircle2, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Building2, CheckCircle2, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { StatusPill } from "@/components/ui/status-pill";
 import { requireMembership } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -28,14 +28,14 @@ export default async function DashboardPage() {
     <>
       <header className="page-header">
         <div className="page-heading">
-          <span className="eyebrow">Fundação operacional</span>
-          <h1>O ambiente está de pé.</h1>
+          <span className="eyebrow">Contexto operacional</span>
+          <h1>Agora o Nexo pode aprender a clínica.</h1>
           <p>
-            A clínica, os acessos e as paredes de segurança já estão organizados. Agora o Nexo
-            pode crescer sem misturar operações.
+            A fundação multi-clínica continua protegida. Nesta iteração, cada ambiente ganha sua
+            própria memória comercial, com fatos, regras, limites e exemplos aprovados.
           </p>
         </div>
-        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 1 ativa</StatusPill>
+        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 2 ativa</StatusPill>
       </header>
 
       <section className="grid-3">
@@ -52,32 +52,32 @@ export default async function DashboardPage() {
         <article className="stat-card">
           <div className="stat-card-header"><span>Seu papel</span><ShieldCheck size={17} /></div>
           <strong>{ROLE_LABELS[activeMembership.role]}</strong>
-          <p>As ações disponíveis são filtradas pelo seu nível de acesso.</p>
+          <p>As ações disponíveis continuam filtradas pelo seu nível de acesso.</p>
         </article>
       </section>
 
       <section className="grid-2" style={{ marginTop: "1rem" }}>
         <article className="card">
-          <h2>O que já funciona</h2>
+          <h2>O que a Iteração 2 adiciona</h2>
           <div className="section-stack">
-            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Autenticação individual</strong><p>Cadastro, login, recuperação e redefinição de senha.</p></div></div>
-            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Multi-clínica com RLS</strong><p>O PostgreSQL bloqueia qualquer leitura cruzada entre clínicas.</p></div></div>
-            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Papéis e convites</strong><p>Proprietários, gestores e atendentes possuem permissões diferentes.</p></div></div>
+            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Identidade e operação</strong><p>Descrição, localização, horários, pagamentos e regras de agendamento.</p></div></div>
+            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Catálogo e autoridade</strong><p>Procedimentos, profissionais, benefícios permitidos e política de preços.</p></div></div>
+            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Trilhos da IA</strong><p>Tom de voz, afirmações proibidas, FAQs e respostas previamente aprovadas.</p></div></div>
           </div>
         </article>
 
         <article className="card">
-          <h2>Próximo tijolo</h2>
+          <h2>Construa a fonte de verdade</h2>
           <p className="card-description">
-            A Iteração 2 transformará o ambiente vazio em uma representação real da clínica:
-            procedimentos, diferenciais, regras, tom de voz e limites comerciais.
+            O perfil comercial será consultado pelo motor SPIN na próxima iteração. Quanto melhor
+            estruturado, menos espaço haverá para respostas genéricas ou informações inventadas.
           </p>
           <div className="feature-row" style={{ marginTop: "1rem" }}>
             <Sparkles size={18} />
-            <div><strong>Motor SPIN preservado para a Iteração 3</strong><p>Primeiro ensinamos quem a clínica é. Depois damos voz à inteligência.</p></div>
+            <div><strong>Motor SPIN preservado para a Iteração 3</strong><p>Primeiro definimos a verdade da clínica. Depois ensinamos a IA a escolher o próximo movimento.</p></div>
           </div>
           <div className="inline-actions" style={{ marginTop: "1rem" }}>
-            <Link className="button button-primary" href="/app/equipe">Organizar equipe <ArrowRight size={16} /></Link>
+            <Link className="button button-primary" href="/app/perfil-comercial"><BookOpenCheck size={16} /> Estruturar perfil <ArrowRight size={16} /></Link>
           </div>
         </article>
       </section>

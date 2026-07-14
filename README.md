@@ -62,11 +62,25 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - referência do cadastro mantida fora do prompt da IA;
 - mutações somente por funções seguras e isolamento por RLS.
 
+## Iteração 6: Central de Documentos
+
+- documentos ligados obrigatoriamente ao paciente;
+- tipos operacionais para receita, exame, atestado, consentimento, orientações, relatório e outros;
+- arquivo privado em PDF, JPG ou PNG, com limite de 15 MB;
+- links temporários de download e auditoria de acesso;
+- fluxo `created`, `awaiting_signature`, `ready_to_send`, `sent`, `viewed` e `cancelled`;
+- confirmação de assinatura e liberação restritas a proprietários e gestores;
+- notas e histórico interno de cada mudança;
+- eventos resumidos na linha do tempo do paciente;
+- arquivos fora do prompt da IA;
+- armazenamento privado, RLS e funções seguras.
+
 ## Stack
 
 - Next.js com App Router e TypeScript
 - React
 - Supabase Auth + PostgreSQL + RLS
+- Supabase Storage privado
 - Gemini API com JSON Schema
 - camada substituível de provedores de IA
 - CSS próprio
@@ -95,6 +109,8 @@ supabase/migrations/202607140006_iteration_4_conversations.sql
 supabase/migrations/202607140007_iteration_4_functions.sql
 supabase/migrations/202607140008_iteration_5_patients.sql
 supabase/migrations/202607140009_iteration_5_functions.sql
+supabase/migrations/202607140010_iteration_6_document_center.sql
+supabase/migrations/202607140011_iteration_6_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -136,11 +152,13 @@ https://SEU-DOMINIO/auth/callback
 npm run dev
 ```
 
-## Privacidade no modo gratuito
+## Privacidade e limites do MVP
 
-O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google e possui limites de uso. Portanto, não envie dados médicos identificáveis nessa configuração de MVP.
+O Nexo remove alguns identificadores óbvios antes de chamar o provedor, mas nomes próprios e outros dados sensíveis podem escapar da detecção. O plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google e possui limites de uso. Portanto, não envie dados médicos identificáveis ao motor de IA nessa configuração de MVP.
 
-O módulo de pacientes desta etapa é comercial e operacional. Ele não substitui prontuário e não deve armazenar diagnóstico, prescrição, documento, exame ou informação clínica sensível.
+O cadastro de pacientes continua comercial e não substitui prontuário. Os arquivos da Central de Documentos são privados e não são enviados ao Gemini nesta iteração, mas a implementação não constitui certificação de conformidade jurídica, regulatória ou de segurança.
+
+Os estados de assinatura são controles operacionais. O Nexo ainda não aplica certificado digital, não valida ICP-Brasil e não emite receita eletrônica oficial.
 
 ## Primeiro administrador da plataforma
 
@@ -166,7 +184,8 @@ npm run build
 - `docs/ITERATION_3.md`
 - `docs/ITERATION_4.md`
 - `docs/ITERATION_5.md`
+- `docs/ITERATION_6.md`
 
 ## Próxima iteração
 
-A Iteração 6 construirá a Central de Documentos do Paciente, começando pelo fluxo interno de criação, assinatura, envio e auditoria, sem integrações externas complexas.
+A Iteração 7 adicionará inteligência documental para classificar arquivos, alertar sobre fotos ou scans, verificar campos aparentes e preparar a mensagem de envio, sem permitir que a IA assine, prescreva ou declare validade jurídica.

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
-  BookOpenCheck,
   Building2,
   FileLock2,
   LayoutDashboard,
@@ -16,7 +15,6 @@ import {
   Users,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { OPERATIONAL_ROLE_LABELS, ROLE_LABELS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import type { WorkspaceKind, WorkspaceMembership } from "@/lib/workspaces/types";
@@ -36,28 +34,20 @@ const WORKSPACE_HOME: Record<WorkspaceKind, string> = {
 
 const navigation = {
   attendance: [
-    { href: "/app/atendimento", label: "Visão de atendimento", icon: LayoutDashboard, shared: false },
-    { href: "/app/fila", label: "Minha fila", icon: ListTodo, shared: true },
+    { href: "/app/atendimento", label: "Hoje", icon: LayoutDashboard, shared: false },
     { href: "/app/responder", label: "Conversas", icon: MessageSquareText, shared: true },
     { href: "/app/pacientes", label: "Pacientes", icon: UserRound, shared: true },
-    { href: "/app/documentos", label: "Documentos", icon: FileLock2, shared: true },
+    { href: "/app/fila", label: "Minha fila", icon: ListTodo, shared: true },
     { href: "/app/encaminhamentos", label: "Encaminhamentos", icon: Stethoscope, shared: true },
   ],
   medical: [
-    { href: "/app/medico", label: "Pendências médicas", icon: LayoutDashboard, shared: false },
-    { href: "/app/encaminhamentos", label: "Encaminhamentos", icon: Stethoscope, shared: true },
+    { href: "/app/medico", label: "Hoje", icon: LayoutDashboard, shared: false },
+    { href: "/app/encaminhamentos", label: "Pendências", icon: Stethoscope, shared: true },
     { href: "/app/documentos", label: "Documentos", icon: FileLock2, shared: true },
-    { href: "/app/pacientes", label: "Pacientes", icon: UserRound, shared: true },
-    { href: "/app/fila", label: "Tarefas", icon: ListTodo, shared: true },
   ],
   management: [
-    { href: "/app/gestao", label: "Visão de gestão", icon: LayoutDashboard, shared: false },
-    { href: "/app/fila", label: "Fila da clínica", icon: ListTodo, shared: true },
-    { href: "/app/encaminhamentos", label: "Fluxo médico", icon: Stethoscope, shared: true },
-    { href: "/app/responder", label: "Conversas", icon: MessageSquareText, shared: true },
-    { href: "/app/pacientes", label: "Pacientes", icon: UserRound, shared: true },
-    { href: "/app/documentos", label: "Documentos", icon: FileLock2, shared: true },
-    { href: "/app/perfil-comercial", label: "Perfil comercial", icon: BookOpenCheck, shared: false },
+    { href: "/app/gestao", label: "Visão geral", icon: LayoutDashboard, shared: false },
+    { href: "/app/fila", label: "Operação", icon: ListTodo, shared: true },
     { href: "/app/equipe", label: "Equipe", icon: Users, shared: false },
     { href: "/app/configuracoes", label: "Configurações", icon: Settings, shared: false },
   ],
@@ -101,25 +91,33 @@ export function AppShell({
     router.refresh();
   }
 
+  function changeWorkspace(workspace: WorkspaceKind) {
+    router.push(WORKSPACE_HOME[workspace]);
+  }
+
   return (
     <div className="app-layout">
       <aside className="sidebar">
         <Logo />
-        <div className="clinic-switcher">
-          <small>Clínica ativa</small>
+        <div className="clinic-switcher clinic-switcher-compact">
+          <small>Clínica</small>
           <strong>{membership.clinic.name}</strong>
-          <span style={{ color: "var(--gold)", fontSize: "0.7rem" }}>
-            {ROLE_LABELS[membership.role]} · {OPERATIONAL_ROLE_LABELS[membership.operational_role]}
-          </span>
-          {availableWorkspaces.length > 1 && (
-            <div className="workspace-switcher" aria-label="Trocar ambiente">
-              {availableWorkspaces.map((workspace) => (
-                <Link className={workspace === activeWorkspace ? "workspace-active" : ""} href={WORKSPACE_HOME[workspace]} key={workspace}>
-                  {workspace === "medical" ? <Stethoscope size={15} /> : workspace === "management" ? <Settings size={15} /> : <MessageSquareText size={15} />}
-                  {WORKSPACE_LABELS[workspace]}
-                </Link>
-              ))}
-            </div>
+          {availableWorkspaces.length > 1 ? (
+            <label className="workspace-select-label">
+              <span>Ambiente</span>
+              <select
+                aria-label="Trocar ambiente"
+                className="select workspace-select"
+                value={activeWorkspace}
+                onChange={(event) => changeWorkspace(event.target.value as WorkspaceKind)}
+              >
+                {availableWorkspaces.map((workspace) => (
+                  <option key={workspace} value={workspace}>{WORKSPACE_LABELS[workspace]}</option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <span className="workspace-current">{WORKSPACE_LABELS[activeWorkspace]}</span>
           )}
         </div>
         <nav className="sidebar-nav" aria-label={`Navegação do ambiente ${WORKSPACE_LABELS[activeWorkspace]}`}>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FileLock2, Stethoscope, UserRound } from "lucide-react";
-import { StatusPill } from "@/components/ui/status-pill";
+import { ArrowRight, CheckCircle2, FileLock2, Stethoscope } from "lucide-react";
 import { requireMedicalWorkspace } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,59 +22,76 @@ export default async function MedicalWorkspacePage() {
     supabase.from("patient_documents").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId).in("status", ["awaiting_signature", "ready_to_send"]),
   ]);
 
+  const pending = pendingCount ?? 0;
+  const reviewing = reviewCount ?? 0;
+  const completed = completedCount ?? 0;
+
+  const focus = pending > 0
+    ? {
+        label: "Nova pendência",
+        title: `${pending} encaminhamento(s) aguarda(m) sua revisão`,
+        description: "Abra o próximo item e registre uma decisão humana.",
+        action: "Revisar agora",
+      }
+    : reviewing > 0
+      ? {
+          label: "Em andamento",
+          title: `${reviewing} encaminhamento(s) está(ão) em revisão`,
+          description: "Conclua ou devolva a orientação para a equipe.",
+          action: "Continuar revisão",
+        }
+      : {
+          label: "Tudo em ordem",
+          title: "Nenhuma pendência médica principal",
+          description: "Novos encaminhamentos aparecerão aqui quando chegarem.",
+          action: "Ver histórico",
+        };
+
   return (
     <>
-      <header className="page-header">
+      <header className="page-header workspace-page-header">
         <div className="page-heading">
-          <span className="eyebrow">Ambiente Médico</span>
-          <h1>Somente o que precisa da sua decisão.</h1>
-          <p>Encaminhamentos, documentos relacionados e devoluções para a equipe sem ruído comercial ou administrativo.</p>
+          <h1>Hoje</h1>
+          <p>Somente o que precisa da sua decisão.</p>
         </div>
-        <StatusPill tone="gold"><Stethoscope size={13} /> Médico</StatusPill>
       </header>
 
-      <section className="grid-3">
+      <section className="workspace-metrics" aria-label="Resumo médico">
         <article className="stat-card">
-          <div className="stat-card-header"><span>Aguardando revisão</span><Stethoscope size={17} /></div>
-          <strong>{pendingCount ?? 0}</strong>
-          <p>Encaminhamentos novos atribuídos ao seu acesso médico.</p>
+          <div className="stat-card-header"><span>Aguardando</span><Stethoscope size={17} /></div>
+          <strong>{pending}</strong>
         </article>
         <article className="stat-card">
-          <div className="stat-card-header"><span>Em revisão</span><UserRound size={17} /></div>
-          <strong>{reviewCount ?? 0}</strong>
-          <p>Itens que você já assumiu e ainda precisam de uma devolução.</p>
+          <div className="stat-card-header"><span>Em revisão</span><Stethoscope size={17} /></div>
+          <strong>{reviewing}</strong>
         </article>
         <article className="stat-card">
           <div className="stat-card-header"><span>Concluídos</span><CheckCircle2 size={17} /></div>
-          <strong>{completedCount ?? 0}</strong>
-          <p>Aprovações operacionais ou assinaturas registradas no fluxo.</p>
+          <strong>{completed}</strong>
         </article>
       </section>
 
-      <section className="workspace-dashboard-grid" style={{ marginTop: "1rem" }}>
-        <article className="card workspace-action-card">
-          <Stethoscope size={22} />
-          <h2>Pendências médicas</h2>
-          <p className="card-description">Abra a solicitação, consulte o contexto e devolva uma orientação clara à equipe.</p>
-          <Link className="button button-primary" href="/app/encaminhamentos">Abrir encaminhamentos <ArrowRight size={16} /></Link>
+      <section className="workspace-home-grid">
+        <article className="card workspace-focus-card">
+          <div className="workspace-focus-icon"><Stethoscope size={22} /></div>
+          <div>
+            <span className="workspace-kicker">{focus.label}</span>
+            <h2>{focus.title}</h2>
+            <p className="card-description">{focus.description}</p>
+          </div>
+          <Link className="button button-primary" href="/app/encaminhamentos?workspace=medical">{focus.action} <ArrowRight size={16} /></Link>
         </article>
-        <article className="card workspace-action-card">
-          <FileLock2 size={22} />
-          <h2>Documentos relacionados</h2>
-          <p className="card-description">Há {documentCount ?? 0} documento(s) em assinatura ou preparação para envio na clínica.</p>
-          <Link className="button button-secondary" href="/app/documentos">Abrir documentos</Link>
-        </article>
-        <article className="card workspace-action-card">
-          <UserRound size={22} />
-          <h2>Pacientes encaminhados</h2>
-          <p className="card-description">Consulte a linha do tempo operacional vinculada às solicitações recebidas.</p>
-          <Link className="button button-secondary" href="/app/pacientes">Abrir pacientes</Link>
-        </article>
+
+        <aside className="card workspace-shortcuts">
+          <h2>Acessos rápidos</h2>
+          <nav aria-label="Acessos rápidos do ambiente médico">
+            <Link href="/app/encaminhamentos?workspace=medical"><Stethoscope size={17} /><span>Pendências</span></Link>
+            <Link href="/app/documentos?workspace=medical"><FileLock2 size={17} /><span>Documentos</span><small>{documentCount ?? 0}</small></Link>
+          </nav>
+        </aside>
       </section>
 
-      <div className="permission-note" style={{ marginTop: "1rem" }}>
-        <CheckCircle2 size={18} /> “Aprovado operacionalmente” registra uma decisão interna e não substitui validação clínica, assinatura digital ou conformidade legal.
-      </div>
+      <p className="workspace-guardrail">Os estados do fluxo são registros operacionais e não substituem validação clínica, assinatura digital ou conformidade legal.</p>
     </>
   );
 }

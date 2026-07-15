@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, FileClock, ListTodo, MessageSquareText, Stethoscope } from "lucide-react";
 import { StatusPill } from "@/components/ui/status-pill";
-import { requireMembership } from "@/lib/auth";
+import { requireAttendanceWorkspace } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AttendanceWorkspacePage() {
-  const { user, activeMembership } = await requireMembership();
+  const { user, activeMembership } = await requireAttendanceWorkspace();
   const supabase = await createClient();
   const clinicId = activeMembership.clinic_id;
 

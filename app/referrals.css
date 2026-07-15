@@ -1,0 +1,264 @@
+.workspace-switcher {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.workspace-switcher a {
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  padding: 0.58rem 0.7rem;
+}
+
+.workspace-switcher a:hover,
+.workspace-switcher .workspace-active {
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
+  color: var(--foreground);
+}
+
+.referral-workspace {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.62fr);
+  margin-top: 1rem;
+}
+
+.referral-sidebar {
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  position: sticky;
+  top: 1rem;
+}
+
+.referral-heading-row,
+.referral-list-topline,
+.referral-summary-card,
+.referral-title-group,
+.referral-note-form {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.referral-heading-row h2,
+.referral-summary-card h2 {
+  margin: 0.15rem 0 0;
+}
+
+.referral-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 1rem 0;
+}
+
+.referral-create-form,
+.referral-main-column,
+.referral-event-list,
+.referral-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.referral-create-form {
+  background: color-mix(in srgb, var(--surface-strong) 76%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+}
+
+.referral-list-item {
+  background: color-mix(in srgb, var(--surface-strong) 82%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: inherit;
+  display: grid;
+  gap: 0.42rem;
+  padding: 0.8rem;
+}
+
+.referral-list-item:hover,
+.referral-list-item-active {
+  border-color: color-mix(in srgb, var(--gold) 52%, var(--border));
+  transform: translateY(-1px);
+}
+
+.referral-list-item span,
+.referral-list-item p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+.referral-list-topline strong {
+  font-size: 0.88rem;
+}
+
+.referral-empty-main {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  justify-content: center;
+  text-align: center;
+}
+
+.referral-summary-card {
+  flex-wrap: wrap;
+}
+
+.referral-title-group {
+  justify-content: flex-start;
+}
+
+.referral-title-group p {
+  color: var(--muted);
+  margin: 0.35rem 0 0;
+}
+
+.referral-main-icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--gold) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--border));
+  border-radius: 12px;
+  display: flex;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+.referral-reason {
+  color: var(--muted);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.referral-context-links,
+.referral-people-grid,
+.referral-action-grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.referral-context-links a,
+.referral-people-grid > div {
+  align-items: center;
+  background: color-mix(in srgb, var(--surface-strong) 82%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: inherit;
+  display: flex;
+  gap: 0.7rem;
+  min-height: 64px;
+  padding: 0.75rem;
+}
+
+.referral-context-links small,
+.referral-people-grid small {
+  color: var(--muted);
+  display: block;
+  font-size: 0.68rem;
+  margin-bottom: 0.18rem;
+  text-transform: uppercase;
+}
+
+.referral-people-grid > div {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.referral-action-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.referral-action-grid .button {
+  justify-content: center;
+}
+
+.referral-note-form {
+  margin: 1rem 0;
+}
+
+.referral-note-form .input {
+  flex: 1;
+}
+
+.referral-event-list article {
+  border-left: 2px solid var(--border);
+  padding: 0.2rem 0 0.2rem 0.85rem;
+}
+
+.referral-event-list article > div {
+  align-items: center;
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+}
+
+.referral-event-list article span,
+.referral-event-list article small,
+.referral-event-list article p {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.referral-event-list article p {
+  line-height: 1.55;
+  margin: 0.35rem 0;
+  white-space: pre-wrap;
+}
+
+.workspace-dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.workspace-action-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
+}
+
+.workspace-action-card .button {
+  margin-top: auto;
+  width: fit-content;
+}
+
+@media (max-width: 1050px) {
+  .referral-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .referral-sidebar {
+    max-height: none;
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .referral-context-links,
+  .referral-people-grid,
+  .referral-action-grid,
+  .workspace-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .referral-note-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -1,7 +1,13 @@
 export const ROLE_LABELS = {
   owner: "Proprietário",
   manager: "Gestor",
-  attendant: "Atendente",
+  attendant: "Membro",
+} as const;
+
+export const OPERATIONAL_ROLE_LABELS = {
+  attendant: "Atendimento",
+  doctor: "Médico",
+  administrative: "Administrativo",
 } as const;
 
 export const MEMBER_STATUS_LABELS = {

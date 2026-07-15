@@ -87,6 +87,20 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - limite de 10 MB para análise por IA nesta versão;
 - nenhum avanço de status, aprovação, assinatura ou validação automática.
 
+## Iteração 8: Fila Operacional
+
+- tarefas com responsável, prioridade, prazo e status;
+- vínculos opcionais com paciente, conversa e documento;
+- filtros para tarefas ativas, próprias, atrasadas e concluídas;
+- histórico de criação, edição, mudança de status e notas;
+- radar de conversas abertas sem atividade há mais de 24 horas;
+- radar de documentos pendentes sem avanço há mais de 24 horas;
+- prioridade sugerida alta após 24 horas e urgente após 72 horas;
+- transformação explícita de alertas em tarefas;
+- prevenção de tarefas ativas duplicadas para o mesmo alerta;
+- cancelamento e reabertura de canceladas restritos a proprietário e gestor;
+- isolamento multi-clínica, RLS e funções seguras.
+
 ## Stack
 
 - Next.js com App Router e TypeScript
@@ -126,6 +140,8 @@ supabase/migrations/202607140010_iteration_6_document_center.sql
 supabase/migrations/202607140011_iteration_6_functions.sql
 supabase/migrations/202607140012_iteration_7_document_intelligence.sql
 supabase/migrations/202607140013_iteration_7_functions.sql
+supabase/migrations/202607140014_iteration_8_operational_queue.sql
+supabase/migrations/202607140015_iteration_8_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -177,6 +193,8 @@ A pré-análise não verifica autenticidade, autoria, assinatura, registro profi
 
 Os estados de assinatura são controles operacionais. O Nexo ainda não aplica certificado digital, não valida ICP-Brasil e não emite receita eletrônica oficial.
 
+O radar da fila é operacional e não representa urgência clínica. Ele é calculado quando a página é carregada, usa um limite fixo de 24 horas e não substitui agenda, prontuário ou sistema de emergência.
+
 ## Primeiro administrador da plataforma
 
 A tabela `platform_admins` não é editável pelo navegador. Depois de criar sua conta, localize seu UUID em `auth.users` e execute no SQL Editor:
@@ -203,7 +221,8 @@ npm run build
 - `docs/ITERATION_5.md`
 - `docs/ITERATION_6.md`
 - `docs/ITERATION_7.md`
+- `docs/ITERATION_8.md`
 
 ## Próxima iteração
 
-A Iteração 8 poderá criar uma fila operacional com tarefas, prazos, responsáveis e alertas para conversas e documentos parados.
+A Iteração 9 poderá adicionar SLAs configuráveis, modelos de tarefa, lembretes por horário e métricas de tempo até resposta, conclusão e conversão.

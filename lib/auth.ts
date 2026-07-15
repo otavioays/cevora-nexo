@@ -79,3 +79,12 @@ export async function requireMedicalWorkspace() {
   }
   return context;
 }
+
+export async function requireAttendanceWorkspace() {
+  const context = await requireMembership();
+  const isManagement = context.activeMembership.role === "owner" || context.activeMembership.role === "manager";
+  if (context.activeMembership.operational_role === "doctor" && !isManagement) {
+    redirect("/app/medico");
+  }
+  return context;
+}

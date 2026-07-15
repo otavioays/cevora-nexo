@@ -1,6 +1,6 @@
 export type OperationalTaskStatus = "open" | "in_progress" | "completed" | "cancelled";
 export type OperationalTaskPriority = "low" | "normal" | "high" | "urgent";
-export type OperationalTaskSource = "manual" | "conversation_followup" | "document_followup" | "system_alert";
+export type OperationalTaskSource = "manual" | "conversation_followup" | "document_followup" | "system_alert" | "medical_referral";
 export type OperationalTaskEventType = "created" | "updated" | "status_changed" | "note";
 
 export interface OperationalTask {

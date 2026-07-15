@@ -214,7 +214,6 @@ export default async function OperationalQueuePage({ searchParams }: PageProps) 
       <TaskWorkspace
         key={workspaceKey}
         role={activeMembership.role}
-        clinicId={clinicId}
         currentUserId={activeMembership.user_id}
         tasks={tasks}
         activeTask={activeTask}

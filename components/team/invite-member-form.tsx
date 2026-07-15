@@ -47,13 +47,11 @@ export function InviteMemberForm({ clinicId, actorRole }: { clinicId: string; ac
   return (
     <div className="card">
       <h2>Convidar membro</h2>
-      <p className="card-description">
-        O sistema gera um link vinculado ao e-mail. A pessoa precisa entrar com o mesmo endereço para aceitar.
-      </p>
+      <p className="card-description">Escolha o nível administrativo. A função Atendimento, Médico ou Administrativo será definida depois que a pessoa aceitar.</p>
       <form className="invite-grid" onSubmit={handleSubmit}>
-        <input className="input" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="atendente@clinica.com.br" />
+        <input className="input" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="pessoa@clinica.com.br" />
         <select className="select" value={role} onChange={(event) => setRole(event.target.value as ClinicRole)}>
-          <option value="attendant">Atendente</option>
+          <option value="attendant">Membro</option>
           <option value="manager">Gestor</option>
           {actorRole === "owner" && <option value="owner">Proprietário</option>}
         </select>

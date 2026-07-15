@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, FileClock, ListTodo, MessageSquareText, Stethoscope } from "lucide-react";
-import { StatusPill } from "@/components/ui/status-pill";
+import { ArrowRight, FileLock2, ListTodo, MessageSquareText, Stethoscope, UserRound } from "lucide-react";
 import { requireAttendanceWorkspace } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,60 +22,91 @@ export default async function AttendanceWorkspacePage() {
     supabase.from("medical_referrals").select("id", { count: "exact", head: true }).eq("clinic_id", clinicId).eq("assigned_back_to", user.id).eq("status", "returned"),
   ]);
 
+  const returned = returnedReferralCount ?? 0;
+  const tasks = taskCount ?? 0;
+  const conversations = conversationCount ?? 0;
+
+  const focus = returned > 0
+    ? {
+        label: "Retorno médico",
+        title: `${returned} encaminhamento(s) voltou(aram) para você`,
+        description: "Leia a orientação e continue o atendimento.",
+        href: "/app/encaminhamentos?workspace=attendance",
+        action: "Ver retornos",
+        icon: Stethoscope,
+      }
+    : tasks > 0
+      ? {
+          label: "Minha fila",
+          title: `${tasks} tarefa(s) precisa(m) de atenção`,
+          description: "Comece pelas atrasadas e urgentes.",
+          href: "/app/fila?workspace=attendance",
+          action: "Abrir fila",
+          icon: ListTodo,
+        }
+      : conversations > 0
+        ? {
+            label: "Conversas",
+            title: `${conversations} conversa(s) ainda está(ão) aberta(s)`,
+            description: "Retome o próximo atendimento da lista.",
+            href: "/app/responder?workspace=attendance",
+            action: "Abrir conversas",
+            icon: MessageSquareText,
+          }
+        : {
+            label: "Tudo em ordem",
+            title: "Nenhuma pendência principal agora",
+            description: "A fila está limpa. Você pode revisar conversas ou pacientes.",
+            href: "/app/responder?workspace=attendance",
+            action: "Ver conversas",
+            icon: MessageSquareText,
+          };
+
+  const FocusIcon = focus.icon;
+
   return (
     <>
-      <header className="page-header">
+      <header className="page-header workspace-page-header">
         <div className="page-heading">
-          <span className="eyebrow">Ambiente de Atendimento</span>
-          <h1>Entre e veja o próximo movimento.</h1>
-          <p>Conversas, tarefas, documentos e retornos médicos reunidos sem configurações administrativas no caminho.</p>
+          <h1>Hoje</h1>
+          <p>O que precisa da sua atenção agora.</p>
         </div>
-        <StatusPill tone="success"><CheckCircle2 size={13} /> Atendimento</StatusPill>
       </header>
 
-      <section className="grid-3">
+      <section className="workspace-metrics" aria-label="Resumo do atendimento">
         <article className="stat-card">
-          <div className="stat-card-header"><span>Minhas tarefas</span><ListTodo size={17} /></div>
-          <strong>{taskCount ?? 0}</strong>
-          <p>Itens abertos ou em andamento atribuídos a você.</p>
+          <div className="stat-card-header"><span>Tarefas</span><ListTodo size={17} /></div>
+          <strong>{tasks}</strong>
         </article>
         <article className="stat-card">
-          <div className="stat-card-header"><span>Conversas abertas</span><MessageSquareText size={17} /></div>
-          <strong>{conversationCount ?? 0}</strong>
-          <p>Conversas sob sua responsabilidade que ainda estão abertas.</p>
+          <div className="stat-card-header"><span>Conversas</span><MessageSquareText size={17} /></div>
+          <strong>{conversations}</strong>
         </article>
         <article className="stat-card">
           <div className="stat-card-header"><span>Retornos médicos</span><Stethoscope size={17} /></div>
-          <strong>{returnedReferralCount ?? 0}</strong>
-          <p>Encaminhamentos devolvidos com orientação para continuar o fluxo.</p>
+          <strong>{returned}</strong>
         </article>
       </section>
 
-      <section className="workspace-dashboard-grid" style={{ marginTop: "1rem" }}>
-        <article className="card workspace-action-card">
-          <ListTodo size={22} />
-          <h2>Fila de hoje</h2>
-          <p className="card-description">Priorize tarefas próprias, atrasadas e pendências detectadas pelo radar.</p>
-          <Link className="button button-primary" href="/app/fila">Abrir minha fila <ArrowRight size={16} /></Link>
+      <section className="workspace-home-grid">
+        <article className="card workspace-focus-card">
+          <div className="workspace-focus-icon"><FocusIcon size={22} /></div>
+          <div>
+            <span className="workspace-kicker">{focus.label}</span>
+            <h2>{focus.title}</h2>
+            <p className="card-description">{focus.description}</p>
+          </div>
+          <Link className="button button-primary" href={focus.href}>{focus.action} <ArrowRight size={16} /></Link>
         </article>
-        <article className="card workspace-action-card">
-          <MessageSquareText size={22} />
-          <h2>Conversas</h2>
-          <p className="card-description">Continue atendimentos com memória comercial e assistência SPIN.</p>
-          <Link className="button button-secondary" href="/app/responder">Abrir conversas</Link>
-        </article>
-        <article className="card workspace-action-card">
-          <FileClock size={22} />
-          <h2>Documentos pendentes</h2>
-          <p className="card-description">Você possui {documentCount ?? 0} documento(s) atribuídos aguardando avanço.</p>
-          <Link className="button button-secondary" href="/app/documentos">Abrir documentos</Link>
-        </article>
-        <article className="card workspace-action-card">
-          <Stethoscope size={22} />
-          <h2>Encaminhamentos</h2>
-          <p className="card-description">Envie uma pendência ao médico ou consulte uma orientação devolvida.</p>
-          <Link className="button button-secondary" href="/app/encaminhamentos">Abrir encaminhamentos</Link>
-        </article>
+
+        <aside className="card workspace-shortcuts">
+          <h2>Acessos rápidos</h2>
+          <nav aria-label="Acessos rápidos do atendimento">
+            <Link href="/app/pacientes?workspace=attendance"><UserRound size={17} /><span>Pacientes</span></Link>
+            <Link href="/app/documentos?workspace=attendance"><FileLock2 size={17} /><span>Documentos</span><small>{documentCount ?? 0}</small></Link>
+            <Link href="/app/encaminhamentos?workspace=attendance"><Stethoscope size={17} /><span>Encaminhamentos</span></Link>
+          </nav>
+        </aside>
       </section>
     </>
   );

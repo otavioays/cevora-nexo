@@ -1,15 +1,16 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
-import type { Membership, Profile } from "@/lib/types";
+import type { Profile } from "@/lib/types";
+import type { WorkspaceMembership } from "@/lib/workspaces/types";
 
 export async function getCurrentUserContext() {
   if (!hasSupabaseEnv()) {
     return {
       user: null,
       profile: null as Profile | null,
-      memberships: [] as Membership[],
-      activeMembership: null as Membership | null,
+      memberships: [] as WorkspaceMembership[],
+      activeMembership: null as WorkspaceMembership | null,
     };
   }
 
@@ -22,8 +23,8 @@ export async function getCurrentUserContext() {
     return {
       user: null,
       profile: null as Profile | null,
-      memberships: [] as Membership[],
-      activeMembership: null as Membership | null,
+      memberships: [] as WorkspaceMembership[],
+      activeMembership: null as WorkspaceMembership | null,
     };
   }
 
@@ -31,13 +32,13 @@ export async function getCurrentUserContext() {
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase
       .from("clinic_members")
-      .select("id, clinic_id, user_id, role, status, created_at, updated_at, clinic:clinics(*)")
+      .select("id, clinic_id, user_id, role, operational_role, professional_id, status, created_at, updated_at, clinic:clinics(*)")
       .eq("user_id", user.id)
       .eq("status", "active")
       .order("created_at", { ascending: true }),
   ]);
 
-  const normalizedMemberships = (memberships ?? []) as unknown as Membership[];
+  const normalizedMemberships = (memberships ?? []) as unknown as WorkspaceMembership[];
 
   return {
     user,
@@ -60,5 +61,30 @@ export async function requireMembership() {
   if (!context.activeMembership) {
     redirect("/onboarding");
   }
-  return context as typeof context & { activeMembership: Membership };
+  return context as typeof context & { activeMembership: WorkspaceMembership };
+}
+
+export async function requireManagement() {
+  const context = await requireMembership();
+  if (context.activeMembership.role !== "owner" && context.activeMembership.role !== "manager") {
+    redirect("/app/atendimento");
+  }
+  return context;
+}
+
+export async function requireMedicalWorkspace() {
+  const context = await requireMembership();
+  if (context.activeMembership.operational_role !== "doctor") {
+    redirect(context.activeMembership.role === "owner" || context.activeMembership.role === "manager" ? "/app/gestao" : "/app/atendimento");
+  }
+  return context;
+}
+
+export async function requireAttendanceWorkspace() {
+  const context = await requireMembership();
+  const isManagement = context.activeMembership.role === "owner" || context.activeMembership.role === "manager";
+  if (context.activeMembership.operational_role === "doctor" && !isManagement) {
+    redirect("/app/medico");
+  }
+  return context;
 }

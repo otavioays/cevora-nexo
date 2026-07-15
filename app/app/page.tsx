@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BrainCircuit, CheckCircle2, FileLock2, ShieldCheck, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, FileLock2, ListTodo, MessageSquareText, Radar } from "lucide-react";
 import { StatusPill } from "@/components/ui/status-pill";
 import { requireMembership } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -10,76 +10,96 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const { activeMembership } = await requireMembership();
   const supabase = await createClient();
+  const now = new Date().toISOString();
+  const staleThreshold = new Date(Date.now() - 24 * 3_600_000).toISOString();
 
-  const [{ count: patientCount }, { count: pendingDocumentCount }, { count: analysisCount }] = await Promise.all([
+  const [
+    { count: activeTaskCount },
+    { count: overdueTaskCount },
+    { count: staleConversationCount },
+    { count: staleDocumentCount },
+  ] = await Promise.all([
     supabase
-      .from("patients")
+      .from("operational_tasks")
       .select("id", { count: "exact", head: true })
-      .eq("clinic_id", activeMembership.clinic_id),
+      .eq("clinic_id", activeMembership.clinic_id)
+      .in("status", ["open", "in_progress"]),
+    supabase
+      .from("operational_tasks")
+      .select("id", { count: "exact", head: true })
+      .eq("clinic_id", activeMembership.clinic_id)
+      .in("status", ["open", "in_progress"])
+      .lt("due_at", now),
+    supabase
+      .from("sales_conversations")
+      .select("id", { count: "exact", head: true })
+      .eq("clinic_id", activeMembership.clinic_id)
+      .eq("status", "open")
+      .lt("last_message_at", staleThreshold),
     supabase
       .from("patient_documents")
       .select("id", { count: "exact", head: true })
       .eq("clinic_id", activeMembership.clinic_id)
-      .in("status", ["created", "awaiting_signature", "ready_to_send"]),
-    supabase
-      .from("patient_document_ai_analyses")
-      .select("id", { count: "exact", head: true })
-      .eq("clinic_id", activeMembership.clinic_id),
+      .in("status", ["created", "awaiting_signature", "ready_to_send"])
+      .lt("updated_at", staleThreshold),
   ]);
+
+  const alertCount = (staleConversationCount ?? 0) + (staleDocumentCount ?? 0);
 
   return (
     <>
       <header className="page-header">
         <div className="page-heading">
-          <span className="eyebrow">Revisão assistida, decisão humana</span>
-          <h1>O documento chega. O Nexo acende as lanternas.</h1>
+          <span className="eyebrow">A operação sabe o próximo movimento</span>
+          <h1>Menos pendência invisível. Mais execução.</h1>
           <p>
-            Arquivos privados agora podem receber uma pré-análise de tipo, legibilidade, campos aparentes e próximos cuidados antes da revisão da equipe.
+            O Nexo reúne tarefas, responsáveis, prazos e um radar de conversas ou documentos que ficaram sem avanço.
           </p>
         </div>
-        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 7 ativa</StatusPill>
+        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 8 ativa</StatusPill>
       </header>
 
       <section className="grid-3">
         <article className="stat-card">
-          <div className="stat-card-header"><span>Pacientes e leads</span><UserRound size={17} /></div>
-          <strong>{patientCount ?? 0}</strong>
-          <p>Registros comerciais conectados a conversas e documentos.</p>
+          <div className="stat-card-header"><span>Tarefas ativas</span><ListTodo size={17} /></div>
+          <strong>{activeTaskCount ?? 0}</strong>
+          <p>Itens abertos ou em andamento na fila operacional.</p>
         </article>
         <article className="stat-card">
-          <div className="stat-card-header"><span>Documentos pendentes</span><FileLock2 size={17} /></div>
-          <strong>{pendingDocumentCount ?? 0}</strong>
-          <p>Arquivos em criação, assinatura ou aguardando envio.</p>
+          <div className="stat-card-header"><span>Tarefas atrasadas</span><AlertTriangle size={17} /></div>
+          <strong>{overdueTaskCount ?? 0}</strong>
+          <p>Prazos vencidos que ainda precisam de conclusão ou reagendamento.</p>
         </article>
         <article className="stat-card">
-          <div className="stat-card-header"><span>Pré-análises realizadas</span><BrainCircuit size={17} /></div>
-          <strong>{analysisCount ?? 0}</strong>
-          <p>Revisões operacionais por IA preservadas na auditoria.</p>
+          <div className="stat-card-header"><span>Alertas do radar</span><Radar size={17} /></div>
+          <strong>{alertCount}</strong>
+          <p>Conversas e documentos sem movimento há mais de 24 horas.</p>
         </article>
       </section>
 
       <section className="grid-2" style={{ marginTop: "1rem" }}>
         <article className="card">
-          <h2>O que mudou na Iteração 7</h2>
+          <h2>O que mudou na Iteração 8</h2>
           <div className="section-stack">
-            <div className="check-row"><BrainCircuit size={17} /><div><strong>Classificação e qualidade</strong><p>O Nexo sugere o tipo e aponta corte, desfoque, reflexo, orientação ou baixa legibilidade.</p></div></div>
-            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Checklist aparente</strong><p>Campos são marcados apenas como aparentemente presentes, ausentes, incertos ou não aplicáveis.</p></div></div>
-            <div className="check-row"><ShieldCheck size={17} /><div><strong>Guarda-corpos rígidos</strong><p>A IA não valida autenticidade, assinatura, conformidade ou correção clínica e nunca muda o status sozinha.</p></div></div>
+            <div className="check-row"><ListTodo size={17} /><div><strong>Fila com dono e prazo</strong><p>Cada tarefa possui responsável, prioridade, vencimento e estado explícito.</p></div></div>
+            <div className="check-row"><Radar size={17} /><div><strong>Gargalos visíveis</strong><p>Conversas abertas e documentos pendentes aparecem quando ficam mais de 24 horas sem avanço.</p></div></div>
+            <div className="check-row"><CheckCircle2 size={17} /><div><strong>Histórico auditável</strong><p>Criação, edição, mudança de status e notas deixam um rastro interno.</p></div></div>
           </div>
         </article>
 
         <article className="card">
-          <h2>Abra a revisão assistida</h2>
+          <h2>Abra a fila operacional</h2>
           <p className="card-description">
-            Selecione um documento fictício ou anonimizado, confirme a proteção de dados e execute a pré-análise antes da revisão humana.
+            Veja o que está atrasado, assuma alertas do radar e conclua tarefas sem perder o vínculo com paciente, conversa ou documento.
           </p>
           <div className="feature-row" style={{ marginTop: "1rem" }}>
-            <ShieldCheck size={18} />
-            <div><strong>Arquivos reais continuam bloqueados no MVP</strong><p>O provedor gratuito externo não deve receber informações pessoais ou de saúde identificáveis.</p></div>
+            <Radar size={18} />
+            <div><strong>O radar sugere, a equipe decide</strong><p>Nenhuma tarefa é criada automaticamente. Um alerta só entra na fila depois de uma ação humana.</p></div>
           </div>
           <div className="inline-actions" style={{ marginTop: "1rem" }}>
-            <Link className="button button-primary" href="/app/documentos"><BrainCircuit size={16} /> Abrir documentos <ArrowRight size={16} /></Link>
-            <Link className="button button-secondary" href="/app/pacientes"><UserRound size={16} /> Abrir pacientes</Link>
+            <Link className="button button-primary" href="/app/fila"><ListTodo size={16} /> Abrir fila <ArrowRight size={16} /></Link>
+            <Link className="button button-secondary" href="/app/responder"><MessageSquareText size={16} /> Conversas</Link>
+            <Link className="button button-secondary" href="/app/documentos"><FileLock2 size={16} /> Documentos</Link>
           </div>
           <small className="field-help" style={{ display: "block", marginTop: "1rem" }}>Seu papel atual: {ROLE_LABELS[activeMembership.role]}.</small>
         </article>

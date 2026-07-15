@@ -30,6 +30,48 @@ jobs:
         run: |
           tail -n 80 npm-install.log
           exit 1
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run build
+      - name: Run npm run lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint > npm-lint.log 2>&1
+      - name: Upload lint log on failure
+        if: steps.lint.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-lint-log
+          path: npm-lint.log
+      - name: Report lint failure
+        if: steps.lint.outcome == 'failure'
+        run: |
+          tail -n 120 npm-lint.log
+          exit 1
+      - name: Run npm run typecheck
+        id: typecheck
+        continue-on-error: true
+        run: npm run typecheck > npm-typecheck.log 2>&1
+      - name: Upload typecheck log on failure
+        if: steps.typecheck.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-typecheck-log
+          path: npm-typecheck.log
+      - name: Report typecheck failure
+        if: steps.typecheck.outcome == 'failure'
+        run: |
+          tail -n 120 npm-typecheck.log
+          exit 1
+      - name: Run npm run build
+        id: build
+        continue-on-error: true
+        run: npm run build > npm-build.log 2>&1
+      - name: Upload build log on failure
+        if: steps.build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-build-log
+          path: npm-build.log
+      - name: Report build failure
+        if: steps.build.outcome == 'failure'
+        run: |
+          tail -n 160 npm-build.log
+          exit 1

@@ -1,12 +1,12 @@
 # Cevora Nexo
 
-Copiloto comercial para atendentes de clínicas, construído em iterações curtas que entregam capacidades utilizáveis.
+Copiloto comercial e operacional para clínicas, construído em iterações curtas que entregam capacidades utilizáveis.
 
 ## Iteração 1: fundação multi-clínica
 
 - cadastro, login, confirmação e recuperação de acesso;
 - criação do ambiente de uma clínica;
-- papéis de proprietário, gestor e atendente;
+- papéis de proprietário, gestor e membro;
 - convites vinculados ao e-mail;
 - isolamento entre clínicas com PostgreSQL Row Level Security;
 - painel, equipe e configurações básicas.
@@ -20,7 +20,7 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - regras com níveis de orientação, alerta e bloqueio;
 - afirmações proibidas e palavras a evitar;
 - perguntas frequentes e respostas aprovadas;
-- consulta somente leitura para atendentes;
+- consulta somente leitura para atendimento;
 - indicador de completude do contexto disponível para a IA.
 
 ## Iteração 3: motor SPIN por texto
@@ -101,6 +101,20 @@ Copiloto comercial para atendentes de clínicas, construído em iterações curt
 - cancelamento e reabertura de canceladas restritos a proprietário e gestor;
 - isolamento multi-clínica, RLS e funções seguras.
 
+## Iteração 9: Ambientes por Função
+
+- ambientes separados para Atendimento, Médico e Gestão;
+- papel administrativo separado da função operacional;
+- proprietário ou gestor também pode atuar como médico;
+- vínculo entre acesso médico e cadastro profissional;
+- menus e dashboards próprios para cada ambiente;
+- rotas de equipe, perfil comercial e configurações protegidas para gestão;
+- encaminhamentos médicos ligados a paciente, documento e conversa;
+- estados pendente, em revisão, devolvido, aprovado operacionalmente, assinatura registrada e cancelado;
+- solicitante, médico responsável, pessoa do retorno e gestão enxergam somente o fluxo permitido;
+- histórico auditável e eventos na linha do tempo do paciente;
+- nenhuma aprovação clínica, assinatura digital ou validade jurídica automática.
+
 ## Stack
 
 - Next.js com App Router e TypeScript
@@ -142,6 +156,8 @@ supabase/migrations/202607140012_iteration_7_document_intelligence.sql
 supabase/migrations/202607140013_iteration_7_functions.sql
 supabase/migrations/202607140014_iteration_8_operational_queue.sql
 supabase/migrations/202607140015_iteration_8_functions.sql
+supabase/migrations/202607150016_iteration_9_role_workspaces.sql
+supabase/migrations/202607150017_iteration_9_functions.sql
 ```
 
 4. Copie o arquivo de ambiente:
@@ -191,7 +207,9 @@ Os arquivos da Central de Documentos permanecem privados no Supabase. Na Iteraç
 
 A pré-análise não verifica autenticidade, autoria, assinatura, registro profissional, certificado, validade jurídica, conformidade ou correção clínica. Todo resultado exige revisão humana e nenhum status é alterado automaticamente.
 
-Os estados de assinatura são controles operacionais. O Nexo ainda não aplica certificado digital, não valida ICP-Brasil e não emite receita eletrônica oficial.
+Os estados de assinatura e o estado de encaminhamento `signed` são controles operacionais. O Nexo ainda não aplica certificado digital, não valida ICP-Brasil e não emite receita eletrônica oficial.
+
+Encaminhamentos médicos não substituem prontuário e devem conter apenas o contexto operacional necessário para a equipe encaminhar e receber uma decisão humana.
 
 O radar da fila é operacional e não representa urgência clínica. Ele é calculado quando a página é carregada, usa um limite fixo de 24 horas e não substitui agenda, prontuário ou sistema de emergência.
 
@@ -222,7 +240,8 @@ npm run build
 - `docs/ITERATION_6.md`
 - `docs/ITERATION_7.md`
 - `docs/ITERATION_8.md`
+- `docs/ITERATION_9.md`
 
 ## Próxima iteração
 
-A Iteração 9 poderá adicionar SLAs configuráveis, modelos de tarefa, lembretes por horário e métricas de tempo até resposta, conclusão e conversão.
+A Iteração 10 poderá adicionar SLAs configuráveis, modelos de tarefa, lembretes e métricas de tempo entre solicitação, primeira ação, devolução e conclusão.

@@ -3,7 +3,7 @@ import { BrainCircuit, CheckCircle2, ShieldCheck } from "lucide-react";
 import { ConversationWorkspace } from "@/components/conversations/conversation-workspace";
 import { StatusPill } from "@/components/ui/status-pill";
 import { hasAiEnv } from "@/lib/ai/provider";
-import { requireMembership } from "@/lib/auth";
+import { requireAttendanceWorkspace } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type {
   ConversationLatestResult,
@@ -26,7 +26,7 @@ type PageProps = {
 };
 
 export default async function ResponderPage({ searchParams }: PageProps) {
-  const { activeMembership } = await requireMembership();
+  const { activeMembership } = await requireAttendanceWorkspace();
   const supabase = await createClient();
   const params = await searchParams;
 
@@ -159,15 +159,13 @@ export default async function ResponderPage({ searchParams }: PageProps) {
         <div className="page-heading">
           <span className="eyebrow">Memória comercial contínua</span>
           <h1>Conversas</h1>
-          <p>
-            O Nexo acompanha cada atendimento e agora pode conectá-lo ao histórico completo da mesma pessoa.
-          </p>
+          <p>O Nexo acompanha cada atendimento e pode conectá-lo ao histórico completo da mesma pessoa.</p>
         </div>
-        <StatusPill tone="success"><CheckCircle2 size={13} /> Iteração 5 ativa</StatusPill>
+        <StatusPill tone="success"><CheckCircle2 size={13} /> Ambiente de Atendimento</StatusPill>
       </header>
 
       <div className="permission-note spin-page-note">
-        <BrainCircuit size={18} /> Rascunhos gerados não entram na memória até a atendente confirmar que foram realmente enviados.
+        <BrainCircuit size={18} /> Rascunhos gerados não entram na memória até a equipe confirmar que foram realmente enviados.
       </div>
       <div className="permission-note spin-page-note">
         <ShieldCheck size={18} /> A referência interna do paciente nunca é enviada à IA. Somente memória comercial anonimizada pode atravessar conversas vinculadas.

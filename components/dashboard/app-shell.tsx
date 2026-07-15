@@ -1,24 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { BookOpenCheck, Building2, FileLock2, LayoutDashboard, ListTodo, LogOut, MessageSquareText, Settings, UserRound, Users } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  BookOpenCheck,
+  Building2,
+  FileLock2,
+  LayoutDashboard,
+  ListTodo,
+  LogOut,
+  MessageSquareText,
+  Settings,
+  Stethoscope,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { Logo } from "@/components/ui/logo";
-import { ROLE_LABELS } from "@/lib/constants";
+import { OPERATIONAL_ROLE_LABELS, ROLE_LABELS } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
-import type { Membership, Profile } from "@/lib/types";
+import type { Profile } from "@/lib/types";
+import type { WorkspaceKind, WorkspaceMembership } from "@/lib/workspaces/types";
 import { initials } from "@/lib/utils";
 
-const navigation = [
-  { href: "/app", label: "Visão geral", icon: LayoutDashboard },
-  { href: "/app/fila", label: "Fila operacional", icon: ListTodo },
-  { href: "/app/responder", label: "Conversas", icon: MessageSquareText },
-  { href: "/app/pacientes", label: "Pacientes", icon: UserRound },
-  { href: "/app/documentos", label: "Documentos", icon: FileLock2 },
-  { href: "/app/perfil-comercial", label: "Perfil comercial", icon: BookOpenCheck },
-  { href: "/app/equipe", label: "Equipe", icon: Users },
-  { href: "/app/configuracoes", label: "Configurações", icon: Settings },
-];
+const WORKSPACE_LABELS: Record<WorkspaceKind, string> = {
+  attendance: "Atendimento",
+  medical: "Médico",
+  management: "Gestão",
+};
+
+const WORKSPACE_HOME: Record<WorkspaceKind, string> = {
+  attendance: "/app/atendimento",
+  medical: "/app/medico",
+  management: "/app/gestao",
+};
+
+const navigation = {
+  attendance: [
+    { href: "/app/atendimento", label: "Visão de atendimento", icon: LayoutDashboard, shared: false },
+    { href: "/app/fila", label: "Minha fila", icon: ListTodo, shared: true },
+    { href: "/app/responder", label: "Conversas", icon: MessageSquareText, shared: true },
+    { href: "/app/pacientes", label: "Pacientes", icon: UserRound, shared: true },
+    { href: "/app/documentos", label: "Documentos", icon: FileLock2, shared: true },
+    { href: "/app/encaminhamentos", label: "Encaminhamentos", icon: Stethoscope, shared: true },
+  ],
+  medical: [
+    { href: "/app/medico", label: "Pendências médicas", icon: LayoutDashboard, shared: false },
+    { href: "/app/encaminhamentos", label: "Encaminhamentos", icon: Stethoscope, shared: true },
+    { href: "/app/documentos", label: "Documentos", icon: FileLock2, shared: true },
+    { href: "/app/pacientes", label: "Pacientes", icon: UserRound, shared: true },
+    { href: "/app/fila", label: "Tarefas", icon: ListTodo, shared: true },
+  ],
+  management: [
+    { href: "/app/gestao", label: "Visão de gestão", icon: LayoutDashboard, shared: false },
+    { href: "/app/fila", label: "Fila da clínica", icon: ListTodo, shared: true },
+    { href: "/app/encaminhamentos", label: "Fluxo médico", icon: Stethoscope, shared: true },
+    { href: "/app/responder", label: "Conversas", icon: MessageSquareText, shared: true },
+    { href: "/app/pacientes", label: "Pacientes", icon: UserRound, shared: true },
+    { href: "/app/documentos", label: "Documentos", icon: FileLock2, shared: true },
+    { href: "/app/perfil-comercial", label: "Perfil comercial", icon: BookOpenCheck, shared: false },
+    { href: "/app/equipe", label: "Equipe", icon: Users, shared: false },
+    { href: "/app/configuracoes", label: "Configurações", icon: Settings, shared: false },
+  ],
+} satisfies Record<WorkspaceKind, Array<{ href: string; label: string; icon: typeof LayoutDashboard; shared: boolean }>>;
 
 export function AppShell({
   membership,
@@ -26,13 +69,30 @@ export function AppShell({
   email,
   children,
 }: {
-  membership: Membership;
+  membership: WorkspaceMembership;
   profile: Profile | null;
   email: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const isManagement = membership.role === "owner" || membership.role === "manager";
+
+  const availableWorkspaces: WorkspaceKind[] = [];
+  if (membership.operational_role !== "doctor") availableWorkspaces.push("attendance");
+  if (membership.operational_role === "doctor") availableWorkspaces.push("medical");
+  if (isManagement) availableWorkspaces.push("management");
+  if (availableWorkspaces.length === 0) availableWorkspaces.push("attendance");
+
+  const requestedWorkspace = searchParams.get("workspace") as WorkspaceKind | null;
+  let activeWorkspace: WorkspaceKind = availableWorkspaces[0];
+  if (pathname.startsWith("/app/medico")) activeWorkspace = "medical";
+  else if (pathname.startsWith("/app/gestao") || pathname.startsWith("/app/equipe") || pathname.startsWith("/app/perfil-comercial") || pathname.startsWith("/app/configuracoes")) activeWorkspace = "management";
+  else if (pathname.startsWith("/app/atendimento")) activeWorkspace = "attendance";
+  else if (requestedWorkspace && availableWorkspaces.includes(requestedWorkspace)) activeWorkspace = requestedWorkspace;
+
+  if (!availableWorkspaces.includes(activeWorkspace)) activeWorkspace = availableWorkspaces[0];
 
   async function signOut() {
     const supabase = createClient();
@@ -46,18 +106,29 @@ export function AppShell({
       <aside className="sidebar">
         <Logo />
         <div className="clinic-switcher">
-          <small>Ambiente ativo</small>
+          <small>Clínica ativa</small>
           <strong>{membership.clinic.name}</strong>
           <span style={{ color: "var(--gold)", fontSize: "0.7rem" }}>
-            {ROLE_LABELS[membership.role]}
+            {ROLE_LABELS[membership.role]} · {OPERATIONAL_ROLE_LABELS[membership.operational_role]}
           </span>
+          {availableWorkspaces.length > 1 && (
+            <div className="workspace-switcher" aria-label="Trocar ambiente">
+              {availableWorkspaces.map((workspace) => (
+                <Link className={workspace === activeWorkspace ? "workspace-active" : ""} href={WORKSPACE_HOME[workspace]} key={workspace}>
+                  {workspace === "medical" ? <Stethoscope size={15} /> : workspace === "management" ? <Settings size={15} /> : <MessageSquareText size={15} />}
+                  {WORKSPACE_LABELS[workspace]}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-        <nav className="sidebar-nav" aria-label="Navegação principal">
-          {navigation.map((item) => {
-            const active = item.href === "/app" ? pathname === item.href : pathname.startsWith(item.href);
+        <nav className="sidebar-nav" aria-label={`Navegação do ambiente ${WORKSPACE_LABELS[activeWorkspace]}`}>
+          {navigation[activeWorkspace].map((item) => {
+            const active = pathname === item.href || (item.href !== WORKSPACE_HOME[activeWorkspace] && pathname.startsWith(item.href));
             const Icon = item.icon;
+            const href = item.shared ? `${item.href}?workspace=${activeWorkspace}` : item.href;
             return (
-              <Link key={item.href} className={`nav-item ${active ? "nav-item-active" : ""}`} href={item.href}>
+              <Link key={item.href} className={`nav-item ${active ? "nav-item-active" : ""}`} href={href}>
                 <Icon size={17} /> {item.label}
               </Link>
             );
@@ -80,7 +151,7 @@ export function AppShell({
           <Logo />
           <div className="inline-actions">
             <Building2 size={16} />
-            <strong style={{ fontSize: "0.82rem" }}>{membership.clinic.name}</strong>
+            <strong style={{ fontSize: "0.82rem" }}>{WORKSPACE_LABELS[activeWorkspace]}</strong>
             <button className="button button-ghost button-small" type="button" onClick={signOut}>
               <LogOut size={16} />
             </button>
